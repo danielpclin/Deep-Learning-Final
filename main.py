@@ -74,7 +74,7 @@ def train(batch_size=500):
                kernel_size=(3, 3),
                activation='relu')(x)
     x = BatchNormalization()(x)
-    x = MaxPooling2D(pool_size=(2, 2))(x)
+    # x = MaxPooling2D(pool_size=(2, 2))(x)
     x = Flatten()(x)
     # x = Dense(512, activation='relu')(x)
     x = Dropout(0.4)(x)
