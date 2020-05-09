@@ -59,20 +59,20 @@ def train(batch_size=500):
                activation='relu')(x)
     x = BatchNormalization()(x)
     x = MaxPooling2D(pool_size=(2, 2))(x)
-    x = Conv2D(filters=128,
-               kernel_size=(3, 3),
-               padding='same',
-               activation='relu')(x)
+    # x = Conv2D(filters=128,
+    #            kernel_size=(3, 3),
+    #            padding='same',
+    #            activation='relu')(x)
     x = Conv2D(filters=128,
                kernel_size=(3, 3),
                # padding='same',
                activation='relu')(x)
     x = BatchNormalization()(x)
     x = MaxPooling2D(pool_size=(2, 2))(x)
-    x = Conv2D(filters=256,
-               kernel_size=(3, 3),
-               padding='same',
-               activation='relu')(x)
+    # x = Conv2D(filters=256,
+    #            kernel_size=(3, 3),
+    #            padding='same',
+    #            activation='relu')(x)
     x = Conv2D(filters=256,
                kernel_size=(3, 3),
                # padding='same',
