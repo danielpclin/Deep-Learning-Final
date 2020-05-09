@@ -12,7 +12,7 @@ from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2
 
 
 def train(batch_size=500):
-    version = "conv256_double_0.4_5"
+    version = "conv256_double_cnn_0.4_6"
     checkpoint_path = f'checkpoint_{version}.hdf5'
     log_dir = f'logs/{version}'
     epochs = 100
@@ -80,14 +80,14 @@ def train(batch_size=500):
     x = BatchNormalization()(x)
     # x = MaxPooling2D(pool_size=(2, 2))(x)
     x = Flatten()(x)
-    # x = Dense(512, activation='relu')(x)
+    x = Dense(512, activation='relu')(x)
     x = Dropout(0.4)(x)
     out = [Dense(len(alphabet), name=f'digit{i+1}', activation='softmax')(x) for i in range(6)]
     model = Model(main_input, out)
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
     checkpoint = ModelCheckpoint(checkpoint_path, monitor='val_digit6_accuracy', verbose=1, save_best_only=True, mode='max')
-    earlystop = EarlyStopping(monitor='val_digit6_accuracy', patience=10, verbose=1, mode='auto')
+    earlystop = EarlyStopping(monitor='val_digit6_accuracy', patience=5, verbose=1, mode='auto')
     tensorBoard = TensorBoard(log_dir=log_dir, histogram_freq=1)
     callbacks_list = [tensorBoard, earlystop, checkpoint]
     # callbacks_list = [tensorBoard]
