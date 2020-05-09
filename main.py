@@ -12,11 +12,10 @@ from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2
 
 
 def train(batch_size=500):
-    version = "conv256_double_0.4_8"
+    version = "conv256_double_0.4_9"
     checkpoint_path = f'checkpoint_{version}.hdf5'
     log_dir = f'logs/{version}'
     epochs = 100
-    # batch_size = 500
     img_width = 200
     img_height = 60
     alphabet = list('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
@@ -59,20 +58,20 @@ def train(batch_size=500):
                activation='relu')(x)
     x = BatchNormalization()(x)
     x = MaxPooling2D(pool_size=(2, 2))(x)
-    # x = Conv2D(filters=128,
-    #            kernel_size=(3, 3),
-    #            padding='same',
-    #            activation='relu')(x)
+    x = Conv2D(filters=128,
+               kernel_size=(3, 3),
+               padding='same',
+               activation='relu')(x)
     x = Conv2D(filters=128,
                kernel_size=(3, 3),
                # padding='same',
                activation='relu')(x)
     x = BatchNormalization()(x)
     x = MaxPooling2D(pool_size=(2, 2))(x)
-    # x = Conv2D(filters=256,
-    #            kernel_size=(3, 3),
-    #            padding='same',
-    #            activation='relu')(x)
+    x = Conv2D(filters=256,
+               kernel_size=(3, 3),
+               padding='same',
+               activation='relu')(x)
     x = Conv2D(filters=256,
                kernel_size=(3, 3),
                # padding='same',
@@ -87,7 +86,7 @@ def train(batch_size=500):
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
     checkpoint = ModelCheckpoint(checkpoint_path, monitor='val_digit6_accuracy', verbose=1, save_best_only=True, mode='max')
-    earlystop = EarlyStopping(monitor='val_digit6_accuracy', patience=5, verbose=1, mode='auto')
+    earlystop = EarlyStopping(monitor='loss', patience=5, verbose=1, mode='auto')
     tensorBoard = TensorBoard(log_dir=log_dir, histogram_freq=1)
     callbacks_list = [tensorBoard, earlystop, checkpoint]
     # callbacks_list = [tensorBoard]
