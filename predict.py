@@ -3,10 +3,8 @@ import os
 import pandas as pd
 import tensorflow as tf
 import numpy as np
-from keras.utils import to_categorical
 from keras_preprocessing.image import ImageDataGenerator
 from tensorflow.keras import Input, Model
-from tensorflow.keras.callbacks import TensorBoard, EarlyStopping, ModelCheckpoint
 from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D, BatchNormalization
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = str(0)
@@ -15,18 +13,11 @@ from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2
 def train(batch_size=500):
     version = "conv256_double_0.4_7"
     checkpoint_path = f'checkpoint_{version}.hdf5'
-    epochs = 100
-    # batch_size = 500
     img_width = 200
     img_height = 60
     alphabet = list('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
-    char_to_int = dict((c, i) for i, c in enumerate(alphabet))
     int_to_char = dict((i, c) for i, c in enumerate(alphabet))
     df = pd.read_csv('dev/data01_dev.csv', delimiter=',')
-    # df['code'] = df['code'].apply(lambda el: list(el))
-    # df[[f'code{i}' for i in range(1, 7)]] = pd.DataFrame(df['code'].to_list(), index=df.index)
-    # for i in range(1, 7):
-    #     df[f'code{i}'] = df[f'code{i}'].apply(lambda el: to_categorical(char_to_int[el], len(alphabet)))
     datagen = ImageDataGenerator(rescale=1. / 255)
     predict_generator = datagen.flow_from_dataframe(dataframe=df, directory="dev/data01_dev",
                                                     x_col="filename", class_mode=None, shuffle=False,
