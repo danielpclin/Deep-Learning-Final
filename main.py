@@ -12,8 +12,9 @@ from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2
 
 
 def train(batch_size=500):
-    checkpoint_path = 'checkpoint.hdf5'
-    log_dir = 'logs/3'
+    version = "conv256_pool_0.2_4"
+    checkpoint_path = f'checkpoint_{version}.hdf5'
+    log_dir = f'logs/{version}'
     epochs = 100
     # batch_size = 500
     img_width = 200
@@ -26,7 +27,7 @@ def train(batch_size=500):
     df[[f'code{i}' for i in range(1, 7)]] = pd.DataFrame(df['code'].to_list(), index=df.index)
     for i in range(1, 7):
         df[f'code{i}'] = df[f'code{i}'].apply(lambda el: to_categorical(char_to_int[el], len(alphabet)))
-    datagen = ImageDataGenerator(rescale=1. / 255, validation_split=0.1)
+    datagen = ImageDataGenerator(rescale=1. / 255, validation_split=0.2)
     train_generator = datagen.flow_from_dataframe(dataframe=df, directory="train/data01_train", subset='training',
                                                   x_col="filename", y_col=[f'code{i}' for i in range(1, 7)],
                                                   class_mode="multi_output",
@@ -66,6 +67,7 @@ def train(batch_size=500):
     x = Conv2D(filters=128,
                kernel_size=(3, 3),
                activation='relu')(x)
+    x = BatchNormalization()(x)
     x = MaxPooling2D(pool_size=(2, 2))(x)
     # x = Dropout(0.2)(x)
     # x = Conv2D(filters=128,
@@ -81,8 +83,8 @@ def train(batch_size=500):
     x = Conv2D(filters=256,
                kernel_size=(3, 3),
                activation='relu')(x)
-    # x = BatchNormalization()(x)
-    # x = MaxPooling2D(pool_size=(2, 2))(x)
+    x = BatchNormalization()(x)
+    x = MaxPooling2D(pool_size=(2, 2))(x)
     x = Flatten()(x)
     # x = Dense(256, activation='relu')(x)
     x = Dropout(0.2)(x)
@@ -91,7 +93,7 @@ def train(batch_size=500):
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
     checkpoint = ModelCheckpoint(checkpoint_path, monitor='val_digit6_accuracy', verbose=1, save_best_only=True, mode='max')
-    earlystop = EarlyStopping(monitor='val_digit6_accuracy', patience=10, verbose=1, mode='auto')
+    earlystop = EarlyStopping(monitor='val_digit6_accuracy', patience=20, verbose=1, mode='auto')
     tensorBoard = TensorBoard(log_dir=log_dir, histogram_freq=1)
     callbacks_list = [tensorBoard, earlystop, checkpoint]
     # callbacks_list = [tensorBoard]

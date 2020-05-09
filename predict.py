@@ -2,6 +2,7 @@ import os
 
 import pandas as pd
 import tensorflow as tf
+import numpy as np
 from keras.utils import to_categorical
 from keras_preprocessing.image import ImageDataGenerator
 from tensorflow.keras import Input, Model
@@ -12,8 +13,8 @@ from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2
 
 
 def train(batch_size=500):
-    checkpoint_path = 'checkpoint.hdf5'
-    log_dir = 'logs/1'
+    version = "conv256_pool_1_0.4"
+    checkpoint_path = f'checkpoint_{version}.hdf5'
     epochs = 100
     # batch_size = 500
     img_width = 200
@@ -21,16 +22,15 @@ def train(batch_size=500):
     alphabet = list('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
     char_to_int = dict((c, i) for i, c in enumerate(alphabet))
     int_to_char = dict((i, c) for i, c in enumerate(alphabet))
-    df = pd.read_csv('train/data01_train.csv', delimiter=',')
-    df['code'] = df['code'].apply(lambda el: list(el))
-    df[[f'code{i}' for i in range(1, 7)]] = pd.DataFrame(df['code'].to_list(), index=df.index)
-    for i in range(1, 7):
-        df[f'code{i}'] = df[f'code{i}'].apply(lambda el: to_categorical(char_to_int[el], len(alphabet)))
+    df = pd.read_csv('dev/data01_dev.csv', delimiter=',')
+    # df['code'] = df['code'].apply(lambda el: list(el))
+    # df[[f'code{i}' for i in range(1, 7)]] = pd.DataFrame(df['code'].to_list(), index=df.index)
+    # for i in range(1, 7):
+    #     df[f'code{i}'] = df[f'code{i}'].apply(lambda el: to_categorical(char_to_int[el], len(alphabet)))
     datagen = ImageDataGenerator(rescale=1. / 255)
-    predict_generator = datagen.flow_from_dataframe(dataframe=df, directory="train/data01_train", subset='training',
-                                                  x_col="filename",
-                                                  class_mode=None,
-                                                  target_size=(img_height, img_width), batch_size=batch_size)
+    predict_generator = datagen.flow_from_dataframe(dataframe=df, directory="dev/data01_dev",
+                                                    x_col="filename", class_mode=None, shuffle=False,
+                                                    target_size=(img_height, img_width), batch_size=batch_size)
     input_shape = (img_height, img_width, 3)
     main_input = Input(shape=input_shape)
     x = main_input
@@ -62,7 +62,7 @@ def train(batch_size=500):
     x = Conv2D(filters=128,
                kernel_size=(3, 3),
                activation='relu')(x)
-    # x = MaxPooling2D(pool_size=(2, 2))(x)
+    x = MaxPooling2D(pool_size=(2, 2))(x)
     # x = Dropout(0.2)(x)
     # x = Conv2D(filters=128,
     #            kernel_size=(3, 3),
@@ -74,24 +74,32 @@ def train(batch_size=500):
     # x = BatchNormalization()(x)
     # x = MaxPooling2D(pool_size=(2, 2))(x)
     # x = Dropout(0.2)(x)
-    # x = Conv2D(filters=256,
-    #            kernel_size=(3, 3),
-    #            activation='relu')(x)
+    x = Conv2D(filters=256,
+               kernel_size=(3, 3),
+               activation='relu')(x)
     # x = BatchNormalization()(x)
-    # x = MaxPooling2D(pool_size=(2, 2))(x)
+    x = MaxPooling2D(pool_size=(2, 2))(x)
     x = Flatten()(x)
     # x = Dense(256, activation='relu')(x)
-    x = Dropout(0.2)(x)
+    x = Dropout(0.4)(x)
     out = [Dense(len(alphabet), name=f'digit{i+1}', activation='softmax')(x) for i in range(6)]
     model = Model(main_input, out)
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
     model.summary()
     model.load_weights(checkpoint_path)
-    model.predict_generator(
+    pred = model.predict_generator(
         predict_generator,
         steps=predict_generator.n // predict_generator.batch_size,
         verbose=1,
     )
+    result = ["" for _ in range(len(pred[0]))]
+    pred = np.argmax(pred, axis=2)
+    for digit in pred:
+        for index, code in enumerate(digit):
+            result[index] = result[index] + int_to_char[code]
+    df['code'] = result
+    df.to_csv('data01_dev.csv', index=False)
+    print(df)
 
 
 if __name__ == "__main__":
