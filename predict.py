@@ -13,7 +13,7 @@ from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2
 
 def train(batch_size=500):
     checkpoint_path = 'checkpoint.hdf5'
-    log_dir = 'logs/3'
+    log_dir = 'logs/1'
     epochs = 100
     # batch_size = 500
     img_width = 200
@@ -26,14 +26,10 @@ def train(batch_size=500):
     df[[f'code{i}' for i in range(1, 7)]] = pd.DataFrame(df['code'].to_list(), index=df.index)
     for i in range(1, 7):
         df[f'code{i}'] = df[f'code{i}'].apply(lambda el: to_categorical(char_to_int[el], len(alphabet)))
-    datagen = ImageDataGenerator(rescale=1. / 255, validation_split=0.1)
-    train_generator = datagen.flow_from_dataframe(dataframe=df, directory="train/data01_train", subset='training',
-                                                  x_col="filename", y_col=[f'code{i}' for i in range(1, 7)],
-                                                  class_mode="multi_output",
-                                                  target_size=(img_height, img_width), batch_size=batch_size)
-    valid_generator = datagen.flow_from_dataframe(dataframe=df, directory="train/data01_train", subset='validation',
-                                                  x_col="filename", y_col=[f'code{i}' for i in range(1, 7)],
-                                                  class_mode="multi_output",
+    datagen = ImageDataGenerator(rescale=1. / 255)
+    predict_generator = datagen.flow_from_dataframe(dataframe=df, directory="train/data01_train", subset='training',
+                                                  x_col="filename",
+                                                  class_mode=None,
                                                   target_size=(img_height, img_width), batch_size=batch_size)
     input_shape = (img_height, img_width, 3)
     main_input = Input(shape=input_shape)
@@ -66,7 +62,7 @@ def train(batch_size=500):
     x = Conv2D(filters=128,
                kernel_size=(3, 3),
                activation='relu')(x)
-    x = MaxPooling2D(pool_size=(2, 2))(x)
+    # x = MaxPooling2D(pool_size=(2, 2))(x)
     # x = Dropout(0.2)(x)
     # x = Conv2D(filters=128,
     #            kernel_size=(3, 3),
@@ -78,9 +74,9 @@ def train(batch_size=500):
     # x = BatchNormalization()(x)
     # x = MaxPooling2D(pool_size=(2, 2))(x)
     # x = Dropout(0.2)(x)
-    x = Conv2D(filters=256,
-               kernel_size=(3, 3),
-               activation='relu')(x)
+    # x = Conv2D(filters=256,
+    #            kernel_size=(3, 3),
+    #            activation='relu')(x)
     # x = BatchNormalization()(x)
     # x = MaxPooling2D(pool_size=(2, 2))(x)
     x = Flatten()(x)
@@ -89,22 +85,12 @@ def train(batch_size=500):
     out = [Dense(len(alphabet), name=f'digit{i+1}', activation='softmax')(x) for i in range(6)]
     model = Model(main_input, out)
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-
-    checkpoint = ModelCheckpoint(checkpoint_path, monitor='val_digit6_accuracy', verbose=1, save_best_only=True, mode='max')
-    earlystop = EarlyStopping(monitor='val_digit6_accuracy', patience=10, verbose=1, mode='auto')
-    tensorBoard = TensorBoard(log_dir=log_dir, histogram_freq=1)
-    callbacks_list = [tensorBoard, earlystop, checkpoint]
-    # callbacks_list = [tensorBoard]
-
     model.summary()
-    train_history = model.fit_generator(
-        train_generator,
-        steps_per_epoch=train_generator.n//train_generator.batch_size,
-        epochs=epochs,
-        validation_data=valid_generator,
-        validation_steps=valid_generator.n//valid_generator.batch_size,
+    model.load_weights(checkpoint_path)
+    model.predict_generator(
+        predict_generator,
+        steps=predict_generator.n // predict_generator.batch_size,
         verbose=1,
-        callbacks=callbacks_list
     )
 
 
