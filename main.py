@@ -1,3 +1,5 @@
+import os
+
 import pandas as pd
 import tensorflow as tf
 from keras.utils import to_categorical
@@ -8,25 +10,12 @@ from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = str(0)
 
-# gpus = tf.config.experimental.list_physical_devices('GPU')
-# if gpus:
-#     # Restrict TensorFlow to only allocate 2GB of memory on the first GPU
-#     try:
-#         tf.config.experimental.set_virtual_device_configuration(
-#             gpus[0],
-#             [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=2048)])
-#         logical_gpus = tf.config.experimental.list_logical_devices('GPU')
-#         print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
-#     except RuntimeError as e:
-#         # Virtual devices must be set before GPUs have been initialized
-#         print(e)
 
-
-def train():
+def train(batch_size=500):
     checkpoint_path = 'checkpoint'
-    log_dir = 'logs/6'
+    log_dir = 'logs/8'
     epochs = 50
-    batch_size = 50
+    # batch_size = 500
     img_width = 200
     img_height = 60
     alphabet = list('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
@@ -50,19 +39,27 @@ def train():
     main_input = Input(shape=input_shape)
     x = Conv2D(filters=32,
                kernel_size=(3, 3),
-               # padding='same',
+               padding='same',
                activation='relu')(main_input)
+    x = Conv2D(filters=32,
+               kernel_size=(3, 3),
+               padding='same',
+               activation='relu')(x)
     x = MaxPooling2D(pool_size=(2, 2))(x)
+    x = Conv2D(filters=64,
+               kernel_size=(3, 3),
+               padding='same',
+               activation='relu')(x)
     x = Conv2D(filters=64,
                kernel_size=(3, 3),
                activation='relu')(x)
     # x = BatchNormalization()(x)
     x = MaxPooling2D(pool_size=(2, 2))(x)
     # x = Dropout(0.2)(x)
-    # x = Conv2D(filters=128,
-    #            kernel_size=(3, 3),
-    #            padding='same',
-    #            activation='relu')(x)
+    x = Conv2D(filters=128,
+               kernel_size=(3, 3),
+               padding='same',
+               activation='relu')(x)
     x = Conv2D(filters=128,
                kernel_size=(3, 3),
                activation='relu')(x)
@@ -85,7 +82,7 @@ def train():
     # x = BatchNormalization()(x)
     # x = MaxPooling2D(pool_size=(0, 0))(x)
     x = Flatten()(x)
-    x = Dense(256, activation='relu')(x)
+    # x = Dense(256, activation='relu')(x)
     # x = Dropout(0.5)(x)
     out = [Dense(len(alphabet), name=f'digit{i+1}', activation='softmax')(x) for i in range(6)]
     model = Model(main_input, out)
@@ -110,4 +107,19 @@ def train():
 
 
 if __name__ == "__main__":
-    train()
+    if os.environ.get("LOCAL") == "TRUE":
+        gpus = tf.config.experimental.list_physical_devices('GPU')
+        if gpus:
+            # Restrict TensorFlow to only allocate 2GB of memory on the first GPU
+            try:
+                tf.config.experimental.set_virtual_device_configuration(
+                    gpus[0],
+                    [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=2048)])
+                logical_gpus = tf.config.experimental.list_logical_devices('GPU')
+                print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
+            except RuntimeError as e:
+                # Virtual devices must be set before GPUs have been initialized
+                print(e)
+        train(50)
+    else:
+        train()
