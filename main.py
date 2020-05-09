@@ -76,7 +76,6 @@ def train(batch_size=500):
                activation='relu')(x)
     x = BatchNormalization()(x)
     x = MaxPooling2D(pool_size=(2, 2))(x)
-
     x = Flatten()(x)
     # x = Dense(256, activation='relu')(x)
     x = Dropout(0.4)(x)
@@ -85,7 +84,7 @@ def train(batch_size=500):
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
     checkpoint = ModelCheckpoint(checkpoint_path, monitor='val_digit6_accuracy', verbose=1, save_best_only=True, mode='max')
-    earlystop = EarlyStopping(monitor='val_digit6_accuracy', patience=20, verbose=1, mode='auto')
+    earlystop = EarlyStopping(monitor='val_digit6_accuracy', patience=10, verbose=1, mode='auto')
     tensorBoard = TensorBoard(log_dir=log_dir, histogram_freq=1)
     callbacks_list = [tensorBoard, earlystop, checkpoint]
     # callbacks_list = [tensorBoard]
