@@ -13,7 +13,7 @@ from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2
 
 
 def train(batch_size=500):
-    version = "conv256_pool_1_0.4"
+    version = "conv512_0.4_1"
     checkpoint_path = f'checkpoint_{version}.hdf5'
     epochs = 100
     # batch_size = 500
@@ -62,6 +62,7 @@ def train(batch_size=500):
     x = Conv2D(filters=128,
                kernel_size=(3, 3),
                activation='relu')(x)
+    x = BatchNormalization()(x)
     x = MaxPooling2D(pool_size=(2, 2))(x)
     # x = Dropout(0.2)(x)
     # x = Conv2D(filters=128,
@@ -77,7 +78,12 @@ def train(batch_size=500):
     x = Conv2D(filters=256,
                kernel_size=(3, 3),
                activation='relu')(x)
-    # x = BatchNormalization()(x)
+    x = BatchNormalization()(x)
+    x = MaxPooling2D(pool_size=(2, 2))(x)
+    x = Conv2D(filters=512,
+               kernel_size=(3, 3),
+               activation='relu')(x)
+    x = BatchNormalization()(x)
     x = MaxPooling2D(pool_size=(2, 2))(x)
     x = Flatten()(x)
     # x = Dense(256, activation='relu')(x)
@@ -98,7 +104,7 @@ def train(batch_size=500):
         for index, code in enumerate(digit):
             result[index] = result[index] + int_to_char[code]
     df['code'] = result
-    df.to_csv('data01_dev.csv', index=False)
+    df.to_csv(f'predict/{version}.csv', index=False)
     print(df)
 
 
