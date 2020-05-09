@@ -11,7 +11,7 @@ from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2
 
 
 def train(batch_size=500):
-    version = "conv256_double_0.4_9"
+    version = "conv256_double_0.4_10"
     checkpoint_path = f'checkpoint_{version}.hdf5'
     img_width = 200
     img_height = 60
@@ -64,9 +64,8 @@ def train(batch_size=500):
                # padding='same',
                activation='relu')(x)
     x = BatchNormalization()(x)
-    # x = MaxPooling2D(pool_size=(2, 2))(x)
+    x = MaxPooling2D(pool_size=(2, 2))(x)
     x = Flatten()(x)
-    # x = Dense(512, activation='relu')(x)
     x = Dropout(0.4)(x)
     out = [Dense(len(alphabet), name=f'digit{i+1}', activation='softmax')(x) for i in range(6)]
     model = Model(main_input, out)
