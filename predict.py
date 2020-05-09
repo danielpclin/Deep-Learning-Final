@@ -13,7 +13,7 @@ from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2
 
 
 def train(batch_size=500):
-    version = "conv256_double_0.4_5"
+    version = "conv256_double_0.4_7"
     checkpoint_path = f'checkpoint_{version}.hdf5'
     epochs = 100
     # batch_size = 500
@@ -40,7 +40,7 @@ def train(batch_size=500):
                activation='relu')(x)
     x = Conv2D(filters=32,
                kernel_size=(3, 3),
-               padding='same',
+               # padding='same',
                activation='relu')(x)
     x = BatchNormalization()(x)
     x = MaxPooling2D(pool_size=(2, 2))(x)
@@ -50,7 +50,7 @@ def train(batch_size=500):
                activation='relu')(x)
     x = Conv2D(filters=64,
                kernel_size=(3, 3),
-               padding='same',
+               # padding='same',
                activation='relu')(x)
     x = BatchNormalization()(x)
     x = MaxPooling2D(pool_size=(2, 2))(x)
@@ -60,7 +60,7 @@ def train(batch_size=500):
                activation='relu')(x)
     x = Conv2D(filters=128,
                kernel_size=(3, 3),
-               padding='same',
+               # padding='same',
                activation='relu')(x)
     x = BatchNormalization()(x)
     x = MaxPooling2D(pool_size=(2, 2))(x)
@@ -70,7 +70,7 @@ def train(batch_size=500):
                activation='relu')(x)
     x = Conv2D(filters=256,
                kernel_size=(3, 3),
-               padding='same',
+               # padding='same',
                activation='relu')(x)
     x = BatchNormalization()(x)
     # x = MaxPooling2D(pool_size=(2, 2))(x)

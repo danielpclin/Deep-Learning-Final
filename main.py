@@ -12,7 +12,7 @@ from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2
 
 
 def train(batch_size=500):
-    version = "conv256_double_cnn_0.4_6"
+    version = "conv256_double_0.4_8"
     checkpoint_path = f'checkpoint_{version}.hdf5'
     log_dir = f'logs/{version}'
     epochs = 100
@@ -27,7 +27,7 @@ def train(batch_size=500):
     df[[f'code{i}' for i in range(1, 7)]] = pd.DataFrame(df['code'].to_list(), index=df.index)
     for i in range(1, 7):
         df[f'code{i}'] = df[f'code{i}'].apply(lambda el: to_categorical(char_to_int[el], len(alphabet)))
-    datagen = ImageDataGenerator(rescale=1. / 255, validation_split=0.2)
+    datagen = ImageDataGenerator(rescale=1. / 255, validation_split=0.1)
     train_generator = datagen.flow_from_dataframe(dataframe=df, directory="train/data01_train", subset='training',
                                                   x_col="filename", y_col=[f'code{i}' for i in range(1, 7)],
                                                   class_mode="multi_output",
@@ -45,7 +45,7 @@ def train(batch_size=500):
                activation='relu')(x)
     x = Conv2D(filters=32,
                kernel_size=(3, 3),
-               padding='same',
+               # padding='same',
                activation='relu')(x)
     x = BatchNormalization()(x)
     x = MaxPooling2D(pool_size=(2, 2))(x)
@@ -55,7 +55,7 @@ def train(batch_size=500):
                activation='relu')(x)
     x = Conv2D(filters=64,
                kernel_size=(3, 3),
-               padding='same',
+               # padding='same',
                activation='relu')(x)
     x = BatchNormalization()(x)
     x = MaxPooling2D(pool_size=(2, 2))(x)
@@ -65,7 +65,7 @@ def train(batch_size=500):
                activation='relu')(x)
     x = Conv2D(filters=128,
                kernel_size=(3, 3),
-               padding='same',
+               # padding='same',
                activation='relu')(x)
     x = BatchNormalization()(x)
     x = MaxPooling2D(pool_size=(2, 2))(x)
@@ -75,12 +75,12 @@ def train(batch_size=500):
                activation='relu')(x)
     x = Conv2D(filters=256,
                kernel_size=(3, 3),
-               padding='same',
+               # padding='same',
                activation='relu')(x)
     x = BatchNormalization()(x)
     # x = MaxPooling2D(pool_size=(2, 2))(x)
     x = Flatten()(x)
-    x = Dense(512, activation='relu')(x)
+    # x = Dense(512, activation='relu')(x)
     x = Dropout(0.4)(x)
     out = [Dense(len(alphabet), name=f'digit{i+1}', activation='softmax')(x) for i in range(6)]
     model = Model(main_input, out)
