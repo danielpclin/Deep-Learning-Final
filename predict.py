@@ -11,7 +11,7 @@ from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2
 
 
 def train(batch_size=500):
-    version = "conv256_double_0.4_10"
+    version = "conv256_double_0.4_30"
     checkpoint_path = f'checkpoint_{version}.hdf5'
     img_width = 200
     img_height = 60

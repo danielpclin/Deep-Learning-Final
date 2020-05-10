@@ -11,8 +11,8 @@ from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2
 # os.environ["CUDA_VISIBLE_DEVICES"] = str(0)
 
 
-def train(batch_size=500):
-    version = "conv256_double_0.4_10"
+def train(batch_size=500, n=50):
+    version = f"conv512_0.4_{n}"
     checkpoint_path = f'checkpoint_{version}.hdf5'
     log_dir = f'logs/{version}'
     epochs = 100
@@ -26,7 +26,7 @@ def train(batch_size=500):
     df[[f'code{i}' for i in range(1, 7)]] = pd.DataFrame(df['code'].to_list(), index=df.index)
     for i in range(1, 7):
         df[f'code{i}'] = df[f'code{i}'].apply(lambda el: to_categorical(char_to_int[el], len(alphabet)))
-    datagen = ImageDataGenerator(rescale=1. / 255, validation_split=0.1)
+    datagen = ImageDataGenerator(rescale=1. / 255, validation_split=0.2)
     train_generator = datagen.flow_from_dataframe(dataframe=df, directory="train/data01_train", subset='training',
                                                   x_col="filename", y_col=[f'code{i}' for i in range(1, 7)],
                                                   class_mode="multi_output",
@@ -38,16 +38,10 @@ def train(batch_size=500):
     input_shape = (img_height, img_width, 3)
     main_input = Input(shape=input_shape)
     x = main_input
-    x = Conv2D(filters=32,
+    x = Conv2D(filters=64,
                kernel_size=(3, 3),
                padding='same',
                activation='relu')(x)
-    x = Conv2D(filters=32,
-               kernel_size=(3, 3),
-               # padding='same',
-               activation='relu')(x)
-    x = BatchNormalization()(x)
-    x = MaxPooling2D(pool_size=(2, 2))(x)
     x = Conv2D(filters=64,
                kernel_size=(3, 3),
                padding='same',
@@ -64,6 +58,10 @@ def train(batch_size=500):
                activation='relu')(x)
     x = Conv2D(filters=128,
                kernel_size=(3, 3),
+               padding='same',
+               activation='relu')(x)
+    x = Conv2D(filters=128,
+               kernel_size=(3, 3),
                # padding='same',
                activation='relu')(x)
     x = BatchNormalization()(x)
@@ -74,10 +72,33 @@ def train(batch_size=500):
                activation='relu')(x)
     x = Conv2D(filters=256,
                kernel_size=(3, 3),
+               padding='same',
+               activation='relu')(x)
+    x = Conv2D(filters=256,
+               kernel_size=(3, 3),
                # padding='same',
                activation='relu')(x)
     x = BatchNormalization()(x)
     x = MaxPooling2D(pool_size=(2, 2))(x)
+    x = Conv2D(filters=512,
+               kernel_size=(3, 3),
+               padding='same',
+               activation='relu')(x)
+    x = Conv2D(filters=512,
+               kernel_size=(3, 3),
+               padding='same',
+               activation='relu')(x)
+    x = Conv2D(filters=512,
+               kernel_size=(3, 3),
+               # padding='same',
+               activation='relu')(x)
+    x = BatchNormalization()(x)
+    # x = MaxPooling2D(pool_size=(2, 2))(x)
+    # x = Conv2D(filters=512,
+    #            kernel_size=(3, 3),
+    #            padding='same',
+    #            activation='relu')(x)
+    # x = BatchNormalization()(x)
     x = Flatten()(x)
     x = Dropout(0.4)(x)
     out = [Dense(len(alphabet), name=f'digit{i+1}', activation='softmax')(x) for i in range(6)]
@@ -85,7 +106,7 @@ def train(batch_size=500):
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
     checkpoint = ModelCheckpoint(checkpoint_path, monitor='val_digit6_accuracy', verbose=1, save_best_only=True, mode='max')
-    earlystop = EarlyStopping(monitor='loss', patience=5, verbose=1, mode='auto')
+    earlystop = EarlyStopping(monitor='val_digit6_accuracy', patience=5, verbose=1, mode='auto')
     tensorBoard = TensorBoard(log_dir=log_dir, histogram_freq=1)
     callbacks_list = [tensorBoard, earlystop, checkpoint]
     # callbacks_list = [tensorBoard]
@@ -118,4 +139,6 @@ if __name__ == "__main__":
                 print(e)
         train(50)
     else:
-        train()
+        train(n=37)
+        # for i in range(21, 31):
+        #     train(n=i)
