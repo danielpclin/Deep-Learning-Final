@@ -1,14 +1,14 @@
 import os
-
 import pandas as pd
 import tensorflow as tf
+import numpy as np
+import keras
 from keras import backend as K
 from keras.utils import to_categorical
 from keras_preprocessing.image import ImageDataGenerator
 from tensorflow.keras import Input, Model
 from tensorflow.keras.callbacks import TensorBoard, EarlyStopping, ModelCheckpoint
 from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D, BatchNormalization, Concatenate
-
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = str(0)
 
@@ -51,12 +51,18 @@ def main():
         #     train(n=i, data=2)
 
 
+class CustomCallback(keras.callbacks.Callback):
+    def on_epoch_end(self, epoch, logs=None):
+        keys = list(logs.keys())
+        print("End epoch {} of training; got log keys: {}".format(epoch, keys))
+
+
 def train(batch_size=500, n=50, data=1, conv_repeat=3):
     dataset = f"train/data0{data}_train"
     version = f"data0{data}_{n}"
     checkpoint_path = f'checkpoint_{version}.hdf5'
     log_dir = f'logs/{version}'
-    epochs = 100
+    epochs = 1
     img_width = 200
     img_height = 60
     alphabet = list('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
@@ -79,64 +85,48 @@ def train(batch_size=500, n=50, data=1, conv_repeat=3):
     input_shape = (img_height, img_width, 3)
     main_input = Input(shape=input_shape)
     x = main_input
-    for j in range(conv_repeat-1):
+    for j in range(conv_repeat - 1):
         x = Conv2D(filters=64,
-                      kernel_size=(3, 3),
-                      padding='same',
-                      activation='relu')(x)
+                   kernel_size=(3, 3),
+                   padding='same',
+                   activation='relu')(x)
     x = Conv2D(filters=64,
-                  kernel_size=(3, 3),
-                  # padding='same',
-                  activation='relu')(x)
+               kernel_size=(3, 3),
+               activation='relu')(x)
     x = BatchNormalization()(x)
     x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
     for j in range(conv_repeat - 1):
         x = Conv2D(filters=128,
-                      kernel_size=(3, 3),
-                      padding='same',
-                      activation='relu')(x)
+                   kernel_size=(3, 3),
+                   padding='same',
+                   activation='relu')(x)
     x = Conv2D(filters=128,
-                  kernel_size=(3, 3),
-                  # padding='same',
-                  activation='relu')(x)
+               kernel_size=(3, 3),
+               activation='relu')(x)
     x = BatchNormalization()(x)
     x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
     for j in range(conv_repeat - 1):
         x = Conv2D(filters=256,
-                      kernel_size=(3, 3),
-                      padding='same',
-                      activation='relu')(x)
+                   kernel_size=(3, 3),
+                   padding='same',
+                   activation='relu')(x)
     x = Conv2D(filters=256,
-                  kernel_size=(3, 3),
-                  # padding='same',
-                  activation='relu')(x)
+               kernel_size=(3, 3),
+               activation='relu')(x)
     x = BatchNormalization()(x)
     x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
-    # for j in range(conv_repeat-1):
-    #     x = Conv2D(filters=512,
-    #                   kernel_size=(3, 3),
-    #                   padding='same',
-    #                   activation='relu')(x)
     x = Conv2D(filters=512,
-                  kernel_size=(3, 3),
-                  # padding='same',
-                  activation='relu')(x)
+               kernel_size=(3, 3),
+               activation='relu')(x)
     x = BatchNormalization()(x)
-    # x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
-    # x = Conv2D(filters=512,
-    #            kernel_size=(3, 3),
-    #            padding='same',
-    #            activation='relu')(x)
-    # x = BatchNormalization()(x)
     x = Flatten()(x)
-    # x = Dense(4096)(x)
-    # x = BatchNormalization()(x)
     x = Dropout(0.4)(x)
     out = [Dense(len(alphabet), name=f'digit{i + 1}', activation='softmax')(x) for i in range(6)]
     model = Model(main_input, out)
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
-    checkpoint = ModelCheckpoint(checkpoint_path, monitor='val_loss', verbose=1, save_best_only=True, save_weights_only=False, mode='auto')
+    checkpoint = ModelCheckpoint(checkpoint_path, monitor='val_loss', verbose=1, save_best_only=True,
+                                 save_weights_only=False, mode='auto')
     earlystop = EarlyStopping(monitor='val_loss', patience=10, verbose=1, mode='auto')
     tensorBoard = TensorBoard(log_dir=log_dir, histogram_freq=1)
     callbacks_list = [tensorBoard, earlystop, checkpoint]
@@ -152,6 +142,24 @@ def train(batch_size=500, n=50, data=1, conv_repeat=3):
         verbose=1,
         callbacks=callbacks_list
     )
+    with open(f"{version}.txt") as file:
+        loss_idx = np.argmin(train_history.history['loss'])
+        digit6_idx = np.argmax(train_history.history['val_digit6_accuracy'])
+        file.write(f"{train_history.history['loss'][loss_idx]}\n")
+        file.write(f"{train_history.history['val_digit1_accuracy'][loss_idx]}\n")
+        file.write(f"{train_history.history['val_digit2_accuracy'][loss_idx]}\n")
+        file.write(f"{train_history.history['val_digit3_accuracy'][loss_idx]}\n")
+        file.write(f"{train_history.history['val_digit4_accuracy'][loss_idx]}\n")
+        file.write(f"{train_history.history['val_digit5_accuracy'][loss_idx]}\n")
+        file.write(f"{train_history.history['val_digit6_accuracy'][loss_idx]}\n")
+        file.write(f"{'-'*20}\n")
+        file.write(f"{train_history.history['loss'][digit6_idx]}\n")
+        file.write(f"{train_history.history['val_digit1_accuracy'][digit6_idx]}\n")
+        file.write(f"{train_history.history['val_digit2_accuracy'][digit6_idx]}\n")
+        file.write(f"{train_history.history['val_digit3_accuracy'][digit6_idx]}\n")
+        file.write(f"{train_history.history['val_digit4_accuracy'][digit6_idx]}\n")
+        file.write(f"{train_history.history['val_digit5_accuracy'][digit6_idx]}\n")
+        file.write(f"{train_history.history['val_digit6_accuracy'][digit6_idx]}\n")
     K.clear_session()
 
 
