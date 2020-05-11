@@ -52,8 +52,8 @@ def predict(batch_size=500, n=(0, 22, 23), data=1):
             verbose=1,
         ))
         K.clear_session()
+    result = ["" for _ in range(len(pred[0][0]))]
     pred_concat = np.argmax(np.concatenate(pred, axis=2), axis=2)
-    result = ["" for _ in range(len(pred_concat[0]))]
     for digit in pred_concat:
         for index, code in enumerate(digit):
             result[index] = result[index] + int_to_char[code % len(alphabet)]
