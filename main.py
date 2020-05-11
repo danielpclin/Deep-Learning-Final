@@ -7,12 +7,49 @@ from keras.utils import to_categorical
 from keras_preprocessing.image import ImageDataGenerator
 from tensorflow.keras import Input, Model
 from tensorflow.keras.callbacks import TensorBoard, EarlyStopping, ModelCheckpoint
-from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D, BatchNormalization
+from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D, BatchNormalization, Concatenate
+
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = str(0)
 
 
-def train(batch_size=500, n=50, data=1):
+def main():
+    if os.environ.get("LOCAL") == "TRUE":
+        gpus = tf.config.experimental.list_physical_devices('GPU')
+        if gpus:
+            # Restrict TensorFlow to only allocate 2GB of memory on the first GPU
+            try:
+                tf.config.experimental.set_virtual_device_configuration(
+                    gpus[0],
+                    [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=2048)])
+                logical_gpus = tf.config.experimental.list_logical_devices('GPU')
+                print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
+            except RuntimeError as e:
+                # Virtual devices must be set before GPUs have been initialized
+                print(e)
+        train(10, n=1, data=1)
+    else:
+        # train(n=11, data=1)
+        # data 01
+        for i in range(11, 16):
+            train(n=i, data=1, conv_repeat=2)
+        for i in range(16, 21):
+            train(n=i, data=1, conv_repeat=3)
+        for i in range(21, 24):
+            train(n=i, data=1, conv_repeat=2, channel=2)
+        for i in range(24, 27):
+            train(n=i, data=1, conv_repeat=2, channel=3)
+        # data 02
+        for i in range(11, 16):
+            train(n=i, data=2, conv_repeat=3)
+        for i in range(16, 21):
+            train(n=i, data=2, conv_repeat=2)
+        # train(n=1, data=2)
+        # for i in range(1, 11):
+        #     train(n=i, data=2)
+
+
+def train(batch_size=500, n=50, data=1, conv_repeat=3, channel=1):
     dataset = f"train/data0{data}_train"
     version = f"data0{data}_{n}"
     checkpoint_path = f'checkpoint_{version}.hdf5'
@@ -39,75 +76,67 @@ def train(batch_size=500, n=50, data=1):
                                                   target_size=(img_height, img_width), batch_size=batch_size)
     input_shape = (img_height, img_width, 3)
     main_input = Input(shape=input_shape)
-    # for i in range(3):
-    #     x.append
-    x = main_input
-    x = Conv2D(filters=64,
-               kernel_size=(3, 3),
-               padding='same',
-               activation='relu')(x)
-    x = Conv2D(filters=64,
-               kernel_size=(3, 3),
-               padding='same',
-               activation='relu')(x)
-    x = Conv2D(filters=64,
-               kernel_size=(3, 3),
-               # padding='same',
-               activation='relu')(x)
-    x = BatchNormalization()(x)
-    x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
-    x = Conv2D(filters=128,
-               kernel_size=(3, 3),
-               padding='same',
-               activation='relu')(x)
-    x = Conv2D(filters=128,
-               kernel_size=(3, 3),
-               padding='same',
-               activation='relu')(x)
-    x = Conv2D(filters=128,
-               kernel_size=(3, 3),
-               # padding='same',
-               activation='relu')(x)
-    x = BatchNormalization()(x)
-    x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
-    x = Conv2D(filters=256,
-               kernel_size=(3, 3),
-               padding='same',
-               activation='relu')(x)
-    x = Conv2D(filters=256,
-               kernel_size=(3, 3),
-               padding='same',
-               activation='relu')(x)
-    x = Conv2D(filters=256,
-               kernel_size=(3, 3),
-               # padding='same',
-               activation='relu')(x)
-    x = BatchNormalization()(x)
-    x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
-    # x = Conv2D(filters=512,
-    #            kernel_size=(3, 3),
-    #            padding='same',
-    #            activation='relu')(x)
-    # x = Conv2D(filters=512,
-    #            kernel_size=(3, 3),
-    #            padding='same',
-    #            activation='relu')(x)
-    x = Conv2D(filters=512,
-               kernel_size=(3, 3),
-               # padding='same',
-               activation='relu')(x)
-    x = BatchNormalization()(x)
-    x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
-    # x = Conv2D(filters=512,
-    #            kernel_size=(3, 3),
-    #            padding='same',
-    #            activation='relu')(x)
-    # x = BatchNormalization()(x)
-    x = Flatten()(x)
-    # x = Dense(4096)(x)
-    # x = BatchNormalization()(x)
-    x = Dropout(0.4)(x)
-    out = [Dense(len(alphabet), name=f'digit{i+1}', activation='softmax')(x) for i in range(6)]
+    x = []
+    for i in range(channel):
+        x.append(main_input)
+        for j in range(conv_repeat-1):
+            x[i] = Conv2D(filters=64,
+                          kernel_size=(3, 3),
+                          padding='same',
+                          activation='relu')(x[i])
+        x[i] = Conv2D(filters=64,
+                      kernel_size=(3, 3),
+                      # padding='same',
+                      activation='relu')(x[i])
+        x[i] = BatchNormalization()(x[i])
+        x[i] = MaxPooling2D(pool_size=(2, 2), padding='same')(x[i])
+        for j in range(conv_repeat - 1):
+            x[i] = Conv2D(filters=128,
+                          kernel_size=(3, 3),
+                          padding='same',
+                          activation='relu')(x[i])
+        x[i] = Conv2D(filters=128,
+                      kernel_size=(3, 3),
+                      # padding='same',
+                      activation='relu')(x[i])
+        x[i] = BatchNormalization()(x[i])
+        x[i] = MaxPooling2D(pool_size=(2, 2), padding='same')(x[i])
+        for j in range(conv_repeat - 1):
+            x[i] = Conv2D(filters=256,
+                          kernel_size=(3, 3),
+                          padding='same',
+                          activation='relu')(x[i])
+        x[i] = Conv2D(filters=256,
+                      kernel_size=(3, 3),
+                      # padding='same',
+                      activation='relu')(x[i])
+        x[i] = BatchNormalization()(x[i])
+        x[i] = MaxPooling2D(pool_size=(2, 2), padding='same')(x[i])
+        # for j in range(conv_repeat-1):
+        #     x[i] = Conv2D(filters=512,
+        #                   kernel_size=(3, 3),
+        #                   padding='same',
+        #                   activation='relu')(x[i])
+        x[i] = Conv2D(filters=512,
+                      kernel_size=(3, 3),
+                      # padding='same',
+                      activation='relu')(x[i])
+        x[i] = BatchNormalization()(x[i])
+        # x[i] = MaxPooling2D(pool_size=(2, 2), padding='same')(x[i])
+        # x[i] = Conv2D(filters=512,
+        #            kernel_size=(3, 3),
+        #            padding='same',
+        #            activation='relu')(x[i])
+        # x[i] = BatchNormalization()(x[i])
+        x[i] = Flatten()(x[i])
+        # x[i] = Dense(4096)(x[i])
+        # x[i] = BatchNormalization()(x[i])
+        x[i] = Dropout(0.4)(x[i])
+    if len(x) == 1:
+        x = x[0]
+    else:
+        x = Concatenate()(x)
+    out = [Dense(len(alphabet), name=f'digit{i + 1}', activation='softmax')(x) for i in range(6)]
     model = Model(main_input, out)
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
@@ -120,36 +149,15 @@ def train(batch_size=500, n=50, data=1):
     model.summary()
     train_history = model.fit_generator(
         train_generator,
-        steps_per_epoch=train_generator.n//train_generator.batch_size,
+        steps_per_epoch=train_generator.n // train_generator.batch_size,
         epochs=epochs,
         validation_data=valid_generator,
-        validation_steps=valid_generator.n//valid_generator.batch_size,
+        validation_steps=valid_generator.n // valid_generator.batch_size,
         verbose=1,
         callbacks=callbacks_list
     )
     K.clear_session()
 
 
-
 if __name__ == "__main__":
-    if os.environ.get("LOCAL") == "TRUE":
-        gpus = tf.config.experimental.list_physical_devices('GPU')
-        if gpus:
-            # Restrict TensorFlow to only allocate 2GB of memory on the first GPU
-            try:
-                tf.config.experimental.set_virtual_device_configuration(
-                    gpus[0],
-                    [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=2048)])
-                logical_gpus = tf.config.experimental.list_logical_devices('GPU')
-                print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
-            except RuntimeError as e:
-                # Virtual devices must be set before GPUs have been initialized
-                print(e)
-        train(50)
-    else:
-        # train(n=2, data=1)
-        for i in range(5, 15):
-            train(n=i, data=1)
-        # train(n=1, data=2)
-        # for i in range(1, 11):
-        #     train(n=i, data=2)
+    main()
