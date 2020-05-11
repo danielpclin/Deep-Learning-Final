@@ -31,25 +31,27 @@ def main():
     else:
         # train(n=11, data=1)
         # data 01
-        for i in range(11, 16):
-            train(n=i, data=1, conv_repeat=2)
-        for i in range(16, 21):
+        # train(n=11, data=1, conv_repeat=3)
+        for i in range(22, 41):
             train(n=i, data=1, conv_repeat=3)
-        for i in range(21, 24):
-            train(n=i, data=1, conv_repeat=2, channel=2)
-        for i in range(24, 27):
-            train(n=i, data=1, conv_repeat=2, channel=3)
-        # data 02
-        for i in range(11, 16):
+        # # data 02
+        for i in range(11, 31):
             train(n=i, data=2, conv_repeat=3)
-        for i in range(16, 21):
-            train(n=i, data=2, conv_repeat=2)
+        # more
+        for i in range(41, 61):
+            train(n=i, data=1, conv_repeat=3)
+        for i in range(31, 51):
+            train(n=i, data=2, conv_repeat=3)
+        for i in range(61, 81):
+            train(n=i, data=1, conv_repeat=3)
+        for i in range(51, 71):
+            train(n=i, data=2, conv_repeat=3)
         # train(n=1, data=2)
         # for i in range(1, 11):
         #     train(n=i, data=2)
 
 
-def train(batch_size=500, n=50, data=1, conv_repeat=3, channel=1):
+def train(batch_size=500, n=50, data=1, conv_repeat=3):
     dataset = f"train/data0{data}_train"
     version = f"data0{data}_{n}"
     checkpoint_path = f'checkpoint_{version}.hdf5'
@@ -76,71 +78,65 @@ def train(batch_size=500, n=50, data=1, conv_repeat=3, channel=1):
                                                   target_size=(img_height, img_width), batch_size=batch_size)
     input_shape = (img_height, img_width, 3)
     main_input = Input(shape=input_shape)
-    x = []
-    for i in range(channel):
-        x.append(main_input)
-        for j in range(conv_repeat-1):
-            x[i] = Conv2D(filters=64,
-                          kernel_size=(3, 3),
-                          padding='same',
-                          activation='relu')(x[i])
-        x[i] = Conv2D(filters=64,
+    x = main_input
+    for j in range(conv_repeat-1):
+        x = Conv2D(filters=64,
                       kernel_size=(3, 3),
-                      # padding='same',
-                      activation='relu')(x[i])
-        x[i] = BatchNormalization()(x[i])
-        x[i] = MaxPooling2D(pool_size=(2, 2), padding='same')(x[i])
-        for j in range(conv_repeat - 1):
-            x[i] = Conv2D(filters=128,
-                          kernel_size=(3, 3),
-                          padding='same',
-                          activation='relu')(x[i])
-        x[i] = Conv2D(filters=128,
+                      padding='same',
+                      activation='relu')(x)
+    x = Conv2D(filters=64,
+                  kernel_size=(3, 3),
+                  # padding='same',
+                  activation='relu')(x)
+    x = BatchNormalization()(x)
+    x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
+    for j in range(conv_repeat - 1):
+        x = Conv2D(filters=128,
                       kernel_size=(3, 3),
-                      # padding='same',
-                      activation='relu')(x[i])
-        x[i] = BatchNormalization()(x[i])
-        x[i] = MaxPooling2D(pool_size=(2, 2), padding='same')(x[i])
-        for j in range(conv_repeat - 1):
-            x[i] = Conv2D(filters=256,
-                          kernel_size=(3, 3),
-                          padding='same',
-                          activation='relu')(x[i])
-        x[i] = Conv2D(filters=256,
+                      padding='same',
+                      activation='relu')(x)
+    x = Conv2D(filters=128,
+                  kernel_size=(3, 3),
+                  # padding='same',
+                  activation='relu')(x)
+    x = BatchNormalization()(x)
+    x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
+    for j in range(conv_repeat - 1):
+        x = Conv2D(filters=256,
                       kernel_size=(3, 3),
-                      # padding='same',
-                      activation='relu')(x[i])
-        x[i] = BatchNormalization()(x[i])
-        x[i] = MaxPooling2D(pool_size=(2, 2), padding='same')(x[i])
-        # for j in range(conv_repeat-1):
-        #     x[i] = Conv2D(filters=512,
-        #                   kernel_size=(3, 3),
-        #                   padding='same',
-        #                   activation='relu')(x[i])
-        x[i] = Conv2D(filters=512,
-                      kernel_size=(3, 3),
-                      # padding='same',
-                      activation='relu')(x[i])
-        x[i] = BatchNormalization()(x[i])
-        # x[i] = MaxPooling2D(pool_size=(2, 2), padding='same')(x[i])
-        # x[i] = Conv2D(filters=512,
-        #            kernel_size=(3, 3),
-        #            padding='same',
-        #            activation='relu')(x[i])
-        # x[i] = BatchNormalization()(x[i])
-        x[i] = Flatten()(x[i])
-        # x[i] = Dense(4096)(x[i])
-        # x[i] = BatchNormalization()(x[i])
-        x[i] = Dropout(0.4)(x[i])
-    if len(x) == 1:
-        x = x[0]
-    else:
-        x = Concatenate()(x)
+                      padding='same',
+                      activation='relu')(x)
+    x = Conv2D(filters=256,
+                  kernel_size=(3, 3),
+                  # padding='same',
+                  activation='relu')(x)
+    x = BatchNormalization()(x)
+    x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
+    # for j in range(conv_repeat-1):
+    #     x = Conv2D(filters=512,
+    #                   kernel_size=(3, 3),
+    #                   padding='same',
+    #                   activation='relu')(x)
+    x = Conv2D(filters=512,
+                  kernel_size=(3, 3),
+                  # padding='same',
+                  activation='relu')(x)
+    x = BatchNormalization()(x)
+    # x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
+    # x = Conv2D(filters=512,
+    #            kernel_size=(3, 3),
+    #            padding='same',
+    #            activation='relu')(x)
+    # x = BatchNormalization()(x)
+    x = Flatten()(x)
+    # x = Dense(4096)(x)
+    # x = BatchNormalization()(x)
+    x = Dropout(0.4)(x)
     out = [Dense(len(alphabet), name=f'digit{i + 1}', activation='softmax')(x) for i in range(6)]
     model = Model(main_input, out)
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
-    checkpoint = ModelCheckpoint(checkpoint_path, monitor='val_loss', verbose=1, save_best_only=True, mode='auto')
+    checkpoint = ModelCheckpoint(checkpoint_path, monitor='val_loss', verbose=1, save_best_only=True, save_weights_only=False, mode='auto')
     earlystop = EarlyStopping(monitor='val_loss', patience=10, verbose=1, mode='auto')
     tensorBoard = TensorBoard(log_dir=log_dir, histogram_freq=1)
     callbacks_list = [tensorBoard, earlystop, checkpoint]
