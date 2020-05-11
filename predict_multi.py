@@ -41,24 +41,28 @@ def predict(batch_size=500, n=(0, 22, 23), data=1):
     predict_generator = datagen.flow_from_dataframe(dataframe=df, directory=dataset,
                                                     x_col="filename", class_mode=None, shuffle=False,
                                                     target_size=(img_height, img_width), batch_size=batch_size)
-    pred = []
+    pred = None
     for i in n:
         version = f"data0{data}_{i}"
         checkpoint_path = f'checkpoint_{version}.hdf5'
         model = models.load_model(checkpoint_path)
-        pred.append(model.predict_generator(
+        _pred = model.predict_generator(
             predict_generator,
             steps=predict_generator.n // predict_generator.batch_size,
             verbose=1,
-        ))
+        )
+        if _pred is None:
+            pred = _pred
+        else:
+            pred = np.concatenate((pred, _pred), axis=2)
         K.clear_session()
-    result = ["" for _ in range(len(pred[0][0]))]
-    pred_concat = np.argmax(np.concatenate(pred, axis=2), axis=2)
-    for digit in pred_concat:
+    result = ["" for _ in range(len(pred[0]))]
+    pred = np.argmax(pred, axis=2)
+    for digit in pred:
         for index, code in enumerate(digit):
             result[index] = result[index] + int_to_char[code % len(alphabet)]
     df['code'] = result
-    df.to_csv(f'predict/data0{data}_{"_".join(str(n))}.csv', index=False)
+    df.to_csv(f'predict/data0{data}_{"_".join(map(str, n))}.csv', index=False)
     print(df)
 
 
