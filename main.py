@@ -62,7 +62,7 @@ def train(batch_size=500, n=50, data=1, conv_repeat=3):
     version = f"data0{data}_{n}"
     checkpoint_path = f'checkpoint_{version}.hdf5'
     log_dir = f'logs/{version}'
-    epochs = 1
+    epochs = 100
     img_width = 200
     img_height = 60
     alphabet = list('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
