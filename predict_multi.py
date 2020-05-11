@@ -25,13 +25,13 @@ def main():
             except RuntimeError as e:
                 # Virtual devices must be set before GPUs have been initialized
                 print(e)
-        predict(batch_size=50, n=(0, 22, 23), data=1)
+        predict(batch_size=50, n=(0, 22, 23), data=1, both=False)
         # predict(batch_size=50, n=(0, 22), data=1)
     else:
         predict(n=(0, 22, 23), data=1)
 
 
-def predict(batch_size=500, n=(0, 22, 23), data=1):
+def predict(batch_size=500, n=(0, 22, 23), data=1, both=True):
     dataset = f"dev/data0{data}_dev"
     img_width = 200
     img_height = 60
@@ -57,17 +57,22 @@ def predict(batch_size=500, n=(0, 22, 23), data=1):
     pred_argmax_concat = np.concatenate(np.expand_dims(np.argmax(pred, axis=3), axis=3), axis=2)
     pred_concat_argmax = np.argmax(np.concatenate(pred, axis=2), axis=2)
     result = ["" for _ in range(len(pred_argmax_concat[0]))]
-    for index_digit, digit in enumerate(pred_argmax_concat):
-        for index_code, codes in enumerate(digit):
-            (values, counts) = np.unique(codes, return_counts=True)
-            code = values[counts == counts.max()]
-            print(code)
-            if(len(code) > 1):
-                result[index_code] = result[index_code] + int_to_char[pred_concat_argmax[index_digit][index_code] % len(alphabet)]
-            else:
-                result[index_code] = result[index_code] + int_to_char[code[0] % len(alphabet)]
+    if both:
+        for index_digit, digit in enumerate(pred_argmax_concat):
+            for index_code, codes in enumerate(digit):
+                (values, counts) = np.unique(codes, return_counts=True)
+                code = values[counts == counts.max()]
+                print(code)
+                if(len(code) > 1):
+                    result[index_code] = result[index_code] + int_to_char[pred_concat_argmax[index_digit][index_code] % len(alphabet)]
+                else:
+                    result[index_code] = result[index_code] + int_to_char[code[0] % len(alphabet)]
+    else:
+        for digit in pred_concat_argmax:
+            for index, code in enumerate(digit):
+                result[index] = result[index] + int_to_char[code % len(alphabet)]
     df['code'] = result
-    df.to_csv(f'predict/data0{data}_{"_".join(map(str, n))}.csv', index=False)
+    df.to_csv(f'predict/data0{data}_{"_".join(map(str, n))}_{"both" if both else "single"}.csv', index=False)
     print(df)
 
 
