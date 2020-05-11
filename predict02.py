@@ -29,7 +29,7 @@ def main():
         predict(n=11, data=1)
 
 
-def predict(batch_size=500, n=11, data=1):
+def predict(batch_size=500, n=23, data=1):
     dataset = f"dev/data0{data}_dev"
     version = f"data0{data}_{n}"
     checkpoint_path = f'checkpoint_{version}.hdf5'
