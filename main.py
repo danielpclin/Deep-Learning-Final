@@ -32,7 +32,7 @@ def main():
         # train(n=11, data=1)
         # data 01
         # train(n=11, data=1, conv_repeat=3)
-        for i in range(22, 41):
+        for i in range(23, 41):
             train(n=i, data=1, conv_repeat=3)
         # # data 02
         for i in range(11, 31):
