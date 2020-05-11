@@ -142,7 +142,7 @@ def train(batch_size=500, n=50, data=1, conv_repeat=3):
         verbose=1,
         callbacks=callbacks_list
     )
-    with open(f"{version}.txt") as file:
+    with open(f"{version}.txt", "w") as file:
         loss_idx = np.argmin(train_history.history['loss'])
         digit6_idx = np.argmax(train_history.history['val_digit6_accuracy'])
         file.write(f"{train_history.history['loss'][loss_idx]}\n")
