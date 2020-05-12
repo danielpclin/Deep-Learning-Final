@@ -27,7 +27,7 @@ def main():
                 # Virtual devices must be set before GPUs have been initialized
                 print(e)
         # predict(batch_size=50, n=(0, 22, 23), data=1, both=False)
-        predict(batch_size=50, n=(14, 21, 16), data=2, method="ocuur_sum_max")
+        predict(batch_size=50, n=(14, 21, 16), data=2, method="max")
         # predict(batch_size=50, n=(0, 22), data=1)
     else:
         predict(n=(0, 22, 23), data=1)
