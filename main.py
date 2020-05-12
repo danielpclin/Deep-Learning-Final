@@ -143,9 +143,9 @@ def train(batch_size=500, n=50, data=1, conv_repeat=3):
         callbacks=callbacks_list
     )
     with open(f"{version}.txt", "w") as file:
-        loss_idx = np.argmin(train_history.history['loss'])
+        loss_idx = np.argmin(train_history.history['val_loss'])
         digit6_idx = np.argmax(train_history.history['val_digit6_accuracy'])
-        file.write(f"{train_history.history['loss'][loss_idx]}\n")
+        file.write(f"{train_history.history['val_loss'][loss_idx]}\n")
         file.write(f"{train_history.history['val_digit1_accuracy'][loss_idx]}\n")
         file.write(f"{train_history.history['val_digit2_accuracy'][loss_idx]}\n")
         file.write(f"{train_history.history['val_digit3_accuracy'][loss_idx]}\n")
@@ -153,7 +153,7 @@ def train(batch_size=500, n=50, data=1, conv_repeat=3):
         file.write(f"{train_history.history['val_digit5_accuracy'][loss_idx]}\n")
         file.write(f"{train_history.history['val_digit6_accuracy'][loss_idx]}\n")
         file.write(f"{'-'*20}\n")
-        file.write(f"{train_history.history['loss'][digit6_idx]}\n")
+        file.write(f"{train_history.history['val_loss'][digit6_idx]}\n")
         file.write(f"{train_history.history['val_digit1_accuracy'][digit6_idx]}\n")
         file.write(f"{train_history.history['val_digit2_accuracy'][digit6_idx]}\n")
         file.write(f"{train_history.history['val_digit3_accuracy'][digit6_idx]}\n")

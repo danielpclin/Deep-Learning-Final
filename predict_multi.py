@@ -25,7 +25,8 @@ def main():
             except RuntimeError as e:
                 # Virtual devices must be set before GPUs have been initialized
                 print(e)
-        predict(batch_size=50, n=(0, 22, 23), data=1, both=False)
+        # predict(batch_size=50, n=(0, 22, 23), data=1, both=False)
+        predict(batch_size=50, n=(14, 21, 16), data=2, both=True)
         # predict(batch_size=50, n=(0, 22), data=1)
     else:
         predict(n=(0, 22, 23), data=1)
@@ -62,8 +63,8 @@ def predict(batch_size=500, n=(0, 22, 23), data=1, both=True):
             for index_code, codes in enumerate(digit):
                 (values, counts) = np.unique(codes, return_counts=True)
                 code = values[counts == counts.max()]
-                print(code)
-                if(len(code) > 1):
+                # print(code)
+                if len(code) > 1:
                     result[index_code] = result[index_code] + int_to_char[pred_concat_argmax[index_digit][index_code] % len(alphabet)]
                 else:
                     result[index_code] = result[index_code] + int_to_char[code[0] % len(alphabet)]
