@@ -34,7 +34,7 @@ def main():
         # train(n=11, data=1, conv_repeat=3)
         # data01 40 data02 30
         # more
-        train(n=31, data=2)
+        train(n=32, data=2)
         # for i in range(41, 61):
         #     train(n=i, data=1, conv_repeat=3)
         # for i in range(31, 51):
