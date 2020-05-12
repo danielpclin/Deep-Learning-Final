@@ -27,25 +27,22 @@ def main():
             except RuntimeError as e:
                 # Virtual devices must be set before GPUs have been initialized
                 print(e)
-        train(10, n=1, data=1)
+        train(50, n=1, data=2)
     else:
         # train(n=11, data=1)
         # data 01
         # train(n=11, data=1, conv_repeat=3)
-        for i in range(23, 41):
-            train(n=i, data=1, conv_repeat=3)
-        # # data 02
-        for i in range(11, 31):
-            train(n=i, data=2, conv_repeat=3)
+        # data01 40 data02 30
         # more
-        for i in range(41, 61):
-            train(n=i, data=1, conv_repeat=3)
-        for i in range(31, 51):
-            train(n=i, data=2, conv_repeat=3)
-        for i in range(61, 81):
-            train(n=i, data=1, conv_repeat=3)
-        for i in range(51, 71):
-            train(n=i, data=2, conv_repeat=3)
+        train(n=31, data=2)
+        # for i in range(41, 61):
+        #     train(n=i, data=1, conv_repeat=3)
+        # for i in range(31, 51):
+        #     train(n=i, data=2, conv_repeat=3)
+        # for i in range(61, 81):
+        #     train(n=i, data=1, conv_repeat=3)
+        # for i in range(51, 71):
+        #     train(n=i, data=2, conv_repeat=3)
         # train(n=1, data=2)
         # for i in range(1, 11):
         #     train(n=i, data=2)
@@ -57,7 +54,7 @@ class CustomCallback(keras.callbacks.Callback):
         print("End epoch {} of training; got log keys: {}".format(epoch, keys))
 
 
-def train(batch_size=500, n=50, data=1, conv_repeat=3):
+def train(batch_size=500, n=50, data=1):
     dataset = f"train/data0{data}_train"
     version = f"data0{data}_{n}"
     checkpoint_path = f'checkpoint_{version}.hdf5'
@@ -85,40 +82,35 @@ def train(batch_size=500, n=50, data=1, conv_repeat=3):
     input_shape = (img_height, img_width, 3)
     main_input = Input(shape=input_shape)
     x = main_input
-    for j in range(conv_repeat - 1):
-        x = Conv2D(filters=64,
-                   kernel_size=(3, 3),
-                   padding='same',
-                   activation='relu')(x)
-    x = Conv2D(filters=64,
-               kernel_size=(3, 3),
-               activation='relu')(x)
+    x = Conv2D(filters=64, kernel_size=(1, 1), activation='relu', padding='same')(x)
+    x = Conv2D(filters=64, kernel_size=(3, 3), activation='relu', padding='same')(x)
+    x = Conv2D(filters=64, kernel_size=(3, 3), activation='relu', padding='same')(x)
+    x = Conv2D(filters=64, kernel_size=(1, 1), activation='relu')(x)
     x = BatchNormalization()(x)
     x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
-    for j in range(conv_repeat - 1):
-        x = Conv2D(filters=128,
-                   kernel_size=(3, 3),
-                   padding='same',
-                   activation='relu')(x)
-    x = Conv2D(filters=128,
-               kernel_size=(3, 3),
-               activation='relu')(x)
+    x = Conv2D(filters=128, kernel_size=(1, 1), activation='relu', padding='same')(x)
+    x = Conv2D(filters=128, kernel_size=(3, 3), activation='relu', padding='same')(x)
+    x = Conv2D(filters=128, kernel_size=(3, 3), activation='relu', padding='same')(x)
+    x = Conv2D(filters=128, kernel_size=(1, 1), activation='relu')(x)
     x = BatchNormalization()(x)
     x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
-    for j in range(conv_repeat - 1):
-        x = Conv2D(filters=256,
-                   kernel_size=(3, 3),
-                   padding='same',
-                   activation='relu')(x)
-    x = Conv2D(filters=256,
-               kernel_size=(3, 3),
-               activation='relu')(x)
+    x = Conv2D(filters=256, kernel_size=(1, 1), activation='relu', padding='same')(x)
+    x = Conv2D(filters=256, kernel_size=(3, 3), activation='relu', padding='same')(x)
+    x = Conv2D(filters=256, kernel_size=(3, 3), activation='relu', padding='same')(x)
+    x = Conv2D(filters=256, kernel_size=(1, 1), activation='relu')(x)
     x = BatchNormalization()(x)
     x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
-    x = Conv2D(filters=512,
-               kernel_size=(3, 3),
-               activation='relu')(x)
+    x = Conv2D(filters=512, kernel_size=(1, 1), activation='relu', padding='same')(x)
+    x = Conv2D(filters=512, kernel_size=(3, 3), activation='relu', padding='same')(x)
+    x = Conv2D(filters=512, kernel_size=(3, 3), activation='relu', padding='same')(x)
+    x = Conv2D(filters=512, kernel_size=(3, 3), activation='relu')(x)
     x = BatchNormalization()(x)
+    # x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
+    # x = Conv2D(filters=512, kernel_size=(3, 3), activation='relu', padding='same')(x)
+    # x = Conv2D(filters=512, kernel_size=(3, 3), activation='relu', padding='same')(x)
+    # x = Conv2D(filters=512, kernel_size=(3, 3), activation='relu', padding='same')(x)
+    # x = Conv2D(filters=512, kernel_size=(3, 3), activation='relu')(x)
+    # x = BatchNormalization()(x)
     x = Flatten()(x)
     x = Dropout(0.4)(x)
     out = [Dense(len(alphabet), name=f'digit{i + 1}', activation='softmax')(x) for i in range(6)]
