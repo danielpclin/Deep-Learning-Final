@@ -26,7 +26,7 @@ def main():
             except RuntimeError as e:
                 # Virtual devices must be set before GPUs have been initialized
                 print(e)
-        predict(batch_size=50, n=(0, 22, 23, 30, 34, 40), data=1, method="occur_max")
+        predict(batch_size=50, n=(0, 22, 23, 30, 34, 40), data=1, method="occur_sum_max")
         # predict(batch_size=50, n=(14, 21, 16, 30), data=2, method="max")
         # predict(batch_size=50, n=(0, 22), data=1)
     else:
@@ -60,7 +60,7 @@ def predict(batch_size=500, n=(0, 22, 23), data=1, method="ocuur_sum_max"):
     pred_argmax_concat = np.concatenate(np.expand_dims(np.argmax(pred, axis=3), axis=3), axis=2)
     pred_concat_argmax = np.argmax(np.concatenate(pred, axis=2), axis=2)
     result = ["" for _ in range(len(pred_argmax_concat[0]))]
-    if method == "ocuur_max":
+    if method == "occur_max":
         for index_digit, digit in enumerate(pred_argmax_concat):
             for index_code, codes in enumerate(digit):
                 (values, counts) = np.unique(codes, return_counts=True)
@@ -70,7 +70,7 @@ def predict(batch_size=500, n=(0, 22, 23), data=1, method="ocuur_sum_max"):
                     result[index_code] = result[index_code] + int_to_char[pred_concat_argmax[index_digit][index_code] % len(alphabet)]
                 else:
                     result[index_code] = result[index_code] + int_to_char[code[0] % len(alphabet)]
-    elif method == "ocuur_sum_max":
+    elif method == "occur_sum_max":
         for index_digit, digit in enumerate(pred_argmax_concat):
             for index_code, codes in enumerate(digit):
                 (values, counts) = np.unique(codes, return_counts=True)
