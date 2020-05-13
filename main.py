@@ -34,8 +34,8 @@ def main():
         # train(n=11, data=1, conv_repeat=3)
         # data01 40 data02 30
         # more
-        for i in range(33, 39):
-            train(n=i, data=2)
+        # for i in range(33, 39):
+        #     train(n=i, data=2)
         for i in range(41, 46):
             train(n=i, data=1)
         for i in range(39, 45):
@@ -59,6 +59,23 @@ class CustomCallback(keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
         keys = list(logs.keys())
         print("End epoch {} of training; got log keys: {}".format(epoch, keys))
+
+
+class MinimumEpochEarlyStopping(keras.callbacks.EarlyStopping):
+    def __init__(self, monitor='val_loss', min_delta=0, patience=0, verbose=0, mode='auto', baseline=None, restore_best_weights=False, min_epoch=30):
+        super(MinimumEpochEarlyStopping, self).__init__(
+            monitor=monitor,
+            min_delta=min_delta,
+            patience=patience,
+            verbose=verbose,
+            mode=mode,
+            baseline=baseline,
+            restore_best_weights=restore_best_weights)
+        self.min_epoch = min_epoch
+
+    def on_epoch_end(self, epoch, logs=None):
+        if epoch > self.min_epoch:
+            super().on_epoch_end(epoch, logs)
 
 
 def train(batch_size=500, n=50, data=1):
@@ -126,7 +143,7 @@ def train(batch_size=500, n=50, data=1):
 
     checkpoint = ModelCheckpoint(checkpoint_path, monitor='val_loss', verbose=1, save_best_only=True,
                                  save_weights_only=False, mode='auto')
-    earlystop = EarlyStopping(monitor='val_loss', patience=10, verbose=1, mode='auto', restore_best_weights=True)
+    earlystop = MinimumEpochEarlyStopping(monitor='val_loss', patience=10, verbose=1, mode='auto', restore_best_weights=True)
     tensorBoard = TensorBoard(log_dir=log_dir, histogram_freq=1)
     callbacks_list = [tensorBoard, earlystop, checkpoint]
     # callbacks_list = [tensorBoard]
