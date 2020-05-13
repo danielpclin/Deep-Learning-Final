@@ -35,13 +35,13 @@ def main():
         # data01 40 data02 30
         # more
         for i in range(33, 39):
-            train(n=32, data=2)
+            train(n=i, data=2)
         for i in range(41, 46):
-            train(n=32, data=1)
+            train(n=i, data=1)
         for i in range(39, 45):
-            train(n=32, data=2)
+            train(n=i, data=2)
         for i in range(46, 51):
-            train(n=32, data=1)
+            train(n=i, data=1)
         # for i in range(41, 61):
         #     train(n=i, data=1, conv_repeat=3)
         # for i in range(31, 51):
@@ -126,7 +126,7 @@ def train(batch_size=500, n=50, data=1):
 
     checkpoint = ModelCheckpoint(checkpoint_path, monitor='val_loss', verbose=1, save_best_only=True,
                                  save_weights_only=False, mode='auto')
-    earlystop = EarlyStopping(monitor='val_loss', patience=10, verbose=1, mode='auto')
+    earlystop = EarlyStopping(monitor='val_loss', patience=10, verbose=1, mode='auto', restore_best_weights=True)
     tensorBoard = TensorBoard(log_dir=log_dir, histogram_freq=1)
     callbacks_list = [tensorBoard, earlystop, checkpoint]
     # callbacks_list = [tensorBoard]
