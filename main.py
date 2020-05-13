@@ -36,12 +36,14 @@ def main():
         # more
         # for i in range(33, 39):
         #     train(n=i, data=2)
-        for i in range(41, 46):
-            train(n=i, data=1)
-        for i in range(39, 45):
-            train(n=i, data=2)
         for i in range(46, 51):
             train(n=i, data=1)
+        for i in range(39, 46):
+            train(n=i, data=2)
+        for i in range(51, 61):
+            train(n=i, data=1)
+        for i in range(46, 51):
+            train(n=i, data=2)
         # for i in range(41, 61):
         #     train(n=i, data=1, conv_repeat=3)
         # for i in range(31, 51):
@@ -61,7 +63,7 @@ class CustomCallback(keras.callbacks.Callback):
         print("End epoch {} of training; got log keys: {}".format(epoch, keys))
 
 
-class MinimumEpochEarlyStopping(keras.callbacks.EarlyStopping):
+class MinimumEpochEarlyStopping(EarlyStopping):
     def __init__(self, monitor='val_loss', min_delta=0, patience=0, verbose=0, mode='auto', baseline=None, restore_best_weights=False, min_epoch=30):
         super(MinimumEpochEarlyStopping, self).__init__(
             monitor=monitor,
@@ -124,9 +126,6 @@ def train(batch_size=500, n=50, data=1):
     x = Conv2D(filters=256, kernel_size=(3, 3), activation='relu')(x)
     x = BatchNormalization()(x)
     x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
-    x = Conv2D(filters=512, kernel_size=(3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(filters=512, kernel_size=(3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(filters=512, kernel_size=(3, 3), activation='relu', padding='same')(x)
     x = Conv2D(filters=512, kernel_size=(3, 3), activation='relu')(x)
     x = BatchNormalization()(x)
     # x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
@@ -143,7 +142,10 @@ def train(batch_size=500, n=50, data=1):
 
     checkpoint = ModelCheckpoint(checkpoint_path, monitor='val_loss', verbose=1, save_best_only=True,
                                  save_weights_only=False, mode='auto')
-    earlystop = MinimumEpochEarlyStopping(monitor='val_loss', patience=10, verbose=1, mode='auto', restore_best_weights=True)
+    if data == 1:
+        earlystop = MinimumEpochEarlyStopping(monitor='val_loss', patience=10, verbose=1, mode='auto', min_epoch=20)
+    else:
+        earlystop = MinimumEpochEarlyStopping(monitor='val_loss', patience=10, verbose=1, mode='auto', min_epoch=30)
     tensorBoard = TensorBoard(log_dir=log_dir, histogram_freq=1)
     callbacks_list = [tensorBoard, earlystop, checkpoint]
     # callbacks_list = [tensorBoard]
