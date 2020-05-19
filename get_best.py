@@ -9,6 +9,7 @@ def find_best(dataset=1, start=1, end=10, nums=5):
             with open(f"data0{dataset}_{i}.txt", "r") as file:
                 for _ in range(13):
                     file.readline()
+                data.append(i)
                 data_val.append(float(file.readline()))
         except FileNotFoundError:
             pass
