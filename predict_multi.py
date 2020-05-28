@@ -14,27 +14,35 @@ from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2
 
 def main():
     if os.environ.get("LOCAL") == "TRUE":
-        gpus = tf.config.experimental.list_physical_devices('GPU')
-        if gpus:
-            # Restrict TensorFlow to only allocate 2GB of memory on the first GPU
-            try:
-                tf.config.experimental.set_virtual_device_configuration(
-                    gpus[0],
-                    [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=2048)])
-                logical_gpus = tf.config.experimental.list_logical_devices('GPU')
-                print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
-            except RuntimeError as e:
-                # Virtual devices must be set before GPUs have been initialized
-                print(e)
+        CUDA = 0
+        if CUDA >= 0:
+            gpus = tf.config.experimental.list_physical_devices('GPU')
+            if gpus:
+                # Restrict TensorFlow to only allocate 2GB of memory on the first GPU
+                try:
+                    tf.config.experimental.set_virtual_device_configuration(
+                        gpus[0],
+                        [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=1536)])
+                    logical_gpus = tf.config.experimental.list_logical_devices('GPU')
+                    print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
+                except RuntimeError as e:
+                    # Virtual devices must be set before GPUs have been initialized
+                    print(e)
+        else:
+            os.environ["CUDA_VISIBLE_DEVICES"] = str(CUDA)
+        predict(batch_size=50, n=(42,), data=1) #
+        # predict(batch_size=50, n=(0, 22, 23), data=1) # 96.06
         # predict(batch_size=50, n=(0, 22, 23, 30, 34, 40), data=1, method="occur_max") # 97.19
-        # predict(batch_size=500, n=(0, 22, 23, 30, 34, 40, 42, 49, 54, 55), data=1, method="occur_max") # 97.76
+        # predict(batch_size=50, n=(0, 22, 23, 30, 34, 40, 42, 49, 54, 55), data=1, method="max") # 97.57
+        # predict(batch_size=50, n=(0, 22, 23, 30, 34, 40, 42, 49, 54, 55), data=1, method="occur_max") # 97.76
         # predict(batch_size=50, n=(14, 21, 16, 30), data=2, method="max") # 92.10
         # predict(batch_size=50, n=(14, 21, 16, 30, 37, 45, 48, 50), data=2, method="max") # 94.06
-        # predict(batch_size=50, n=(0, 22), data=1)
+
     else:
+        pass
         # predict(n=(0, 22, 23), data=1)
-        # predict(batch_size=500, n=(0, 22, 23, 30, 34, 40, 42, 49, 54, 55), data=1, method="occur_max")
-        predict(batch_size=50, n=(14, 21, 16, 30, 37, 45, 48, 50), data=2, method="max")
+        # predict(batch_size=500, n=(0, 22, 23, 30, 34, 40, 42, 49, 54, 55), data=1, method="occur_max") # 97.76
+        # predict(batch_size=50, n=(14, 21, 16, 30, 37, 45, 48, 50), data=2, method="max")
 
 
 
@@ -61,38 +69,47 @@ def predict(batch_size=500, n=(0, 22, 23), data=1, method="ocuur_sum_max"):
         )
         pred.append(_pred)
         K.clear_session()
-    pred_sum_argmax = np.argmax(reduce(np.add, pred), axis=2)
-    pred_argmax_concat = np.concatenate(np.expand_dims(np.argmax(pred, axis=3), axis=3), axis=2)
-    pred_concat_argmax = np.argmax(np.concatenate(pred, axis=2), axis=2)
-    result = ["" for _ in range(len(pred_argmax_concat[0]))]
-    if method == "occur_max":
-        for index_digit, digit in enumerate(pred_argmax_concat):
-            for index_code, codes in enumerate(digit):
-                (values, counts) = np.unique(codes, return_counts=True)
-                code = values[counts == counts.max()]
-                # print(code)
-                if len(code) > 1:
-                    result[index_code] = result[index_code] + int_to_char[pred_concat_argmax[index_digit][index_code] % len(alphabet)]
-                else:
-                    result[index_code] = result[index_code] + int_to_char[code[0] % len(alphabet)]
-    elif method == "occur_sum_max":
-        for index_digit, digit in enumerate(pred_argmax_concat):
-            for index_code, codes in enumerate(digit):
-                (values, counts) = np.unique(codes, return_counts=True)
-                code = values[counts == counts.max()]
-                # print(code)
-                if len(code) > 1:
-                    result[index_code] = result[index_code] + int_to_char[pred_sum_argmax[index_digit][index_code] % len(alphabet)]
-                else:
-                    result[index_code] = result[index_code] + int_to_char[code[0] % len(alphabet)]
-    elif method == "max":
-        for digit in pred_concat_argmax:
+
+    if len(n) == 1:
+        pred = pred[0]
+        pred_argmax = np.argmax(pred, axis=2)
+        result = ["" for _ in range(len(pred))]
+        for digit in pred_argmax:
             for index, code in enumerate(digit):
                 result[index] = result[index] + int_to_char[code % len(alphabet)]
-    elif method == "sum_max":
-        for digit in pred_sum_argmax:
-            for index, code in enumerate(digit):
-                result[index] = result[index] + int_to_char[code % len(alphabet)]
+    else:
+        pred_sum_argmax = np.argmax(reduce(np.add, pred), axis=2)
+        pred_argmax_concat = np.concatenate(np.expand_dims(np.argmax(pred, axis=3), axis=3), axis=2)
+        pred_concat_argmax = np.argmax(np.concatenate(pred, axis=2), axis=2)
+        result = ["" for _ in range(len(pred_argmax_concat[0]))]
+        if method == "occur_max":
+            for index_digit, digit in enumerate(pred_argmax_concat):
+                for index_code, codes in enumerate(digit):
+                    (values, counts) = np.unique(codes, return_counts=True)
+                    code = values[counts == counts.max()]
+                    # print(code)
+                    if len(code) > 1:
+                        result[index_code] = result[index_code] + int_to_char[pred_concat_argmax[index_digit][index_code] % len(alphabet)]
+                    else:
+                        result[index_code] = result[index_code] + int_to_char[code[0] % len(alphabet)]
+        elif method == "occur_sum_max":
+            for index_digit, digit in enumerate(pred_argmax_concat):
+                for index_code, codes in enumerate(digit):
+                    (values, counts) = np.unique(codes, return_counts=True)
+                    code = values[counts == counts.max()]
+                    # print(code)
+                    if len(code) > 1:
+                        result[index_code] = result[index_code] + int_to_char[pred_sum_argmax[index_digit][index_code] % len(alphabet)]
+                    else:
+                        result[index_code] = result[index_code] + int_to_char[code[0] % len(alphabet)]
+        elif method == "max":
+            for digit in pred_concat_argmax:
+                for index, code in enumerate(digit):
+                    result[index] = result[index] + int_to_char[code % len(alphabet)]
+        elif method == "sum_max":
+            for digit in pred_sum_argmax:
+                for index, code in enumerate(digit):
+                    result[index] = result[index] + int_to_char[code % len(alphabet)]
     df['code'] = result
     df.to_csv(f'predict/data0{data}_{"_".join(map(str, n))}_{method}.csv', index=False)
     print(df)
