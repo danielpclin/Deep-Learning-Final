@@ -42,7 +42,9 @@ def main():
         pass
         # predict(n=(0, 22, 23), data=1)
         # predict(batch_size=500, n=(0, 22, 23, 30, 34, 40, 42, 49, 54, 55), data=1, method="occur_max") # 97.76
-        predict(batch_size=50, n=(14, 21, 16, 30, 40, 37, 45, 48, 49, 50), data=2, method="max")
+        # predict(batch_size=500, n=(14, 21, 16, 30, 40, 37, 45, 48, 49, 50), data=2, method="max") # 94.26
+        predict(batch_size=500, n=(42, 55, 54, 49, 57, 60, 34, 47, 59, 40, 48), data=1, method="occur_max")
+        # predict(batch_size=500, n=(45, 48, 37, 50, 30, 40, 49, 34, 42, 39, 44), data=2, method="max")
 
 
 
