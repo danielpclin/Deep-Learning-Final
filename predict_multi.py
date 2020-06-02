@@ -30,7 +30,7 @@ def main():
                     print(e)
         else:
             os.environ["CUDA_VISIBLE_DEVICES"] = str(CUDA)
-        predict(batch_size=50, n=(42,), data=1) #
+        # predict(batch_size=10, n=(54,), data=1) #
         # predict(batch_size=50, n=(0, 22, 23), data=1) # 96.06
         # predict(batch_size=50, n=(0, 22, 23, 30, 34, 40), data=1, method="occur_max") # 97.19
         # predict(batch_size=50, n=(0, 22, 23, 30, 34, 40, 42, 49, 54, 55), data=1, method="max") # 97.57
@@ -42,7 +42,7 @@ def main():
         pass
         # predict(n=(0, 22, 23), data=1)
         # predict(batch_size=500, n=(0, 22, 23, 30, 34, 40, 42, 49, 54, 55), data=1, method="occur_max") # 97.76
-        # predict(batch_size=50, n=(14, 21, 16, 30, 37, 45, 48, 50), data=2, method="max")
+        predict(batch_size=50, n=(14, 21, 16, 30, 40, 37, 45, 48, 49, 50), data=2, method="max")
 
 
 
@@ -72,11 +72,12 @@ def predict(batch_size=500, n=(0, 22, 23), data=1, method="ocuur_sum_max"):
 
     if len(n) == 1:
         pred = pred[0]
-        pred_argmax = np.argmax(pred, axis=2)
-        result = ["" for _ in range(len(pred))]
-        for digit in pred_argmax:
+        result = ["" for _ in range(len(pred[0]))]
+        pred = np.argmax(pred, axis=2)
+        for digit in pred:
             for index, code in enumerate(digit):
                 result[index] = result[index] + int_to_char[code % len(alphabet)]
+        df['code'] = result
     else:
         pred_sum_argmax = np.argmax(reduce(np.add, pred), axis=2)
         pred_argmax_concat = np.concatenate(np.expand_dims(np.argmax(pred, axis=3), axis=3), axis=2)
@@ -111,7 +112,10 @@ def predict(batch_size=500, n=(0, 22, 23), data=1, method="ocuur_sum_max"):
                 for index, code in enumerate(digit):
                     result[index] = result[index] + int_to_char[code % len(alphabet)]
     df['code'] = result
-    df.to_csv(f'predict/data0{data}_{"_".join(map(str, n))}_{method}.csv', index=False)
+    if len(n) == 1:
+        df.to_csv(f'predict/data0{data}_{n[0]}.csv', index=False)
+    else:
+        df.to_csv(f'predict/data0{data}_{"_".join(map(str, n))}_{method}.csv', index=False)
     print(df)
 
 
