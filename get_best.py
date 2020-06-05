@@ -18,6 +18,8 @@ def find_best(dataset=1, start=1, end=10, nums=5):
         # print(data[a[i]])
         print(data[a[-i-1]])
         print(data_val[a[-i-1]])
+    for i in range(min(nums, len(data_val))):
+        print(data[a[-i-1]], end=", ")
 
 
 def main():

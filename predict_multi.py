@@ -43,24 +43,25 @@ def main():
         # predict(n=(0, 22, 23), data=1)
         # predict(batch_size=500, n=(0, 22, 23, 30, 34, 40, 42, 49, 54, 55), data=1, method="occur_max") # 97.76
         # predict(batch_size=500, n=(14, 21, 16, 30, 40, 37, 45, 48, 49, 50), data=2, method="max") # 94.26
-        predict(batch_size=500, n=(42, 55, 54, 49, 57, 60, 34, 47, 59, 40, 48), data=1, method="occur_max")
-        # predict(batch_size=500, n=(45, 48, 37, 50, 30, 40, 49, 34, 42, 39, 44), data=2, method="max")
+        # predict(batch_size=500, n=(42, 55, 54, 49, 57, 60, 34, 47, 59, 40, 48), data=1, method="occur_max") # 97.90
+        # predict(batch_size=500, n=(45, 48, 37, 50, 30, 40, 49, 34, 42, 39, 44), data=2, method="max") # 94.30
+        # predict(batch_size=500, n=(45, 48, 37, 50, 30, 40, 49, 34, 42), data=2, method="max") # 94.13
 
 
 
-def predict(batch_size=500, n=(0, 22, 23), data=1, method="ocuur_sum_max"):
-    dataset = f"dev/data0{data}_dev"
+def predict(batch_size=500, n=(0, 22, 23), data=1, dataset="dev", method="ocuur_sum_max"):
+    dataset_imgdir = f"{dataset}/data0{data}_{dataset}"
     img_width = 200
     img_height = 60
     alphabet = list('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789')
     int_to_char = dict((i, c) for i, c in enumerate(alphabet))
-    df = pd.read_csv(f'{dataset}.csv', delimiter=',')
+    df = pd.read_csv(f'{dataset_imgdir}.csv', delimiter=',')
     pred = []
     for i in n:
         version = f"data0{data}_{i}"
         checkpoint_path = f'checkpoint_{version}.hdf5'
         datagen = ImageDataGenerator(rescale=1. / 255)
-        predict_generator = datagen.flow_from_dataframe(dataframe=df, directory=dataset,
+        predict_generator = datagen.flow_from_dataframe(dataframe=df, directory=dataset_imgdir,
                                                         x_col="filename", class_mode=None, shuffle=False,
                                                         target_size=(img_height, img_width), batch_size=batch_size)
         model = models.load_model(checkpoint_path)
@@ -115,9 +116,9 @@ def predict(batch_size=500, n=(0, 22, 23), data=1, method="ocuur_sum_max"):
                     result[index] = result[index] + int_to_char[code % len(alphabet)]
     df['code'] = result
     if len(n) == 1:
-        df.to_csv(f'predict/data0{data}_{n[0]}.csv', index=False)
+        df.to_csv(f'predict/data0{data}_{dataset}_{n[0]}.csv', index=False)
     else:
-        df.to_csv(f'predict/data0{data}_{"_".join(map(str, n))}_{method}.csv', index=False)
+        df.to_csv(f'predict/data0{data}_{dataset}_{"_".join(map(str, n))}_{method}.csv', index=False)
     print(df)
 
 
