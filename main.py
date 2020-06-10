@@ -9,9 +9,10 @@ from keras_preprocessing.image import ImageDataGenerator
 from tensorflow.keras import Input, Model
 from tensorflow.keras.callbacks import TensorBoard, EarlyStopping, ModelCheckpoint
 from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D, BatchNormalization, Add
+from tensorflow.keras.callbacks import ReduceLROnPlateau
+from tensorflow.keras.optimizers import Adam
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = str(-1)
-from tensorflow.python.keras.callbacks import ReduceLROnPlateau
 
 
 def main():
@@ -29,7 +30,7 @@ def main():
                 # Virtual devices must be set before GPUs have been initialized
                 print(e)
         # train(64, n=1001, data=1)
-        train(100, n=1004, data=1)
+        train(64, n=1004, data=1)
     else:
         # train(n=11, data=1)
         # data 01
@@ -155,13 +156,11 @@ def train(batch_size=500, n=50, data=1):
     x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
     x = Residual_Block(x, filters=512, kernel_size=(3, 3), with_conv_shortcut=True)
     x = Residual_Block(x, filters=512, kernel_size=(3, 3))
-    # x = Conv2D(filters=512, kernel_size=(3, 3), activation='relu')(x)
-    # x = BatchNormalization()(x)
     x = Flatten()(x)
     x = Dropout(0.4)(x)
     out = [Dense(len(alphabet), name=f'digit{i + 1}', activation='softmax')(x) for i in range(6)]
     model = Model(main_input, out)
-    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+    model.compile(loss='categorical_crossentropy', optimizer=Adam(learning_rate=0.05), metrics=['accuracy'])
 
     checkpoint = ModelCheckpoint(checkpoint_path, monitor='val_loss', verbose=1, save_best_only=True,
                                  save_weights_only=False, mode='auto')
@@ -170,8 +169,7 @@ def train(batch_size=500, n=50, data=1):
     else:
         earlystop = MinimumEpochEarlyStopping(monitor='val_loss', patience=10, verbose=1, mode='auto', min_epoch=30)
     tensorBoard = TensorBoard(log_dir=log_dir, histogram_freq=1)
-    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, min_lr=0.001)
-    callbacks_list = [tensorBoard, earlystop, checkpoint, reduce_lr]
+    callbacks_list = [tensorBoard, earlystop, checkpoint]
     # callbacks_list = [tensorBoard]
 
     model.summary()
