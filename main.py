@@ -11,6 +11,7 @@ from tensorflow.keras.callbacks import TensorBoard, EarlyStopping, ModelCheckpoi
 from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D, BatchNormalization, Add
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = str(-1)
+from tensorflow.python.keras.callbacks import ReduceLROnPlateau
 
 
 def main():
@@ -164,7 +165,8 @@ def train(batch_size=500, n=50, data=1):
     else:
         earlystop = MinimumEpochEarlyStopping(monitor='val_loss', patience=10, verbose=1, mode='auto', min_epoch=30)
     tensorBoard = TensorBoard(log_dir=log_dir, histogram_freq=1)
-    callbacks_list = [tensorBoard, earlystop, checkpoint]
+    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, min_lr=0.001)
+    callbacks_list = [tensorBoard, earlystop, checkpoint, reduce_lr]
     # callbacks_list = [tensorBoard]
 
     model.summary()
