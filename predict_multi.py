@@ -2,12 +2,10 @@ import os
 import pandas as pd
 import tensorflow as tf
 import numpy as np
-import keras
 from functools import reduce
 from keras import backend as K
 from keras_preprocessing.image import ImageDataGenerator
 from tensorflow.keras import Input, Model, models
-from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D, BatchNormalization
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = str(0)
 
@@ -30,22 +28,10 @@ def main():
                     print(e)
         else:
             os.environ["CUDA_VISIBLE_DEVICES"] = str(CUDA)
-        # predict(batch_size=10, n=(54,), data=1) #
-        # predict(batch_size=50, n=(0, 22, 23), data=1) # 96.06
-        # predict(batch_size=50, n=(0, 22, 23, 30, 34, 40), data=1, method="occur_max") # 97.19
-        # predict(batch_size=50, n=(0, 22, 23, 30, 34, 40, 42, 49, 54, 55), data=1, method="max") # 97.57
-        # predict(batch_size=50, n=(0, 22, 23, 30, 34, 40, 42, 49, 54, 55), data=1, method="occur_max") # 97.76
-        # predict(batch_size=50, n=(14, 21, 16, 30), data=2, method="max") # 92.10
-        # predict(batch_size=50, n=(14, 21, 16, 30, 37, 45, 48, 50), data=2, method="max") # 94.06
-
+        predict(batch_size=50, n=(108, 42, 62, 104, 100, 96, 94, 86, 55, 54, 66, 61, 101, 49, 80, 71, 78, 77, 84, 105), data=1)
     else:
-        pass
-        # predict(n=(0, 22, 23), data=1)
-        # predict(batch_size=500, n=(0, 22, 23, 30, 34, 40, 42, 49, 54, 55), data=1, method="occur_max") # 97.76
-        # predict(batch_size=500, n=(14, 21, 16, 30, 40, 37, 45, 48, 49, 50), data=2, method="max") # 94.26
-        # predict(batch_size=500, n=(42, 55, 54, 49, 57, 60, 34, 47, 59, 40, 48), data=1, method="occur_max") # 97.90
-        # predict(batch_size=500, n=(45, 48, 37, 50, 30, 40, 49, 34, 42, 39, 44), data=2, method="max") # 94.30
-        # predict(batch_size=500, n=(45, 48, 37, 50, 30, 40, 49, 34, 42), data=2, method="max") # 94.13
+        predict(n=(108, 42, 62, 104, 100, 96, 94, 86, 55, 54, 66, 61, 101, 49, 80, 71, 78, 77, 84, 105), data=1)
+
 
 
 
