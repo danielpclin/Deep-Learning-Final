@@ -8,7 +8,7 @@ from keras.utils import to_categorical
 from keras_preprocessing.image import ImageDataGenerator
 from tensorflow.keras import Input, Model
 from tensorflow.keras.callbacks import TensorBoard, EarlyStopping, ModelCheckpoint
-from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D, BatchNormalization, Concatenate
+from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D, BatchNormalization, Add
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = str(-1)
 
@@ -27,7 +27,8 @@ def main():
             except RuntimeError as e:
                 # Virtual devices must be set before GPUs have been initialized
                 print(e)
-        train(50, n=1, data=2)
+        # train(64, n=1001, data=1)
+        train(100, n=1003, data=1)
     else:
         # train(n=11, data=1)
         # data 01
@@ -80,6 +81,35 @@ class MinimumEpochEarlyStopping(EarlyStopping):
             super().on_epoch_end(epoch, logs)
 
 
+def Conv2d_BN(x, filters, kernel_size, padding='same', strides=(1, 1), name=None):
+    if name is not None:
+        bn_name = name + '_bn'
+        conv_name = name + '_conv'
+    else:
+        bn_name = None
+        conv_name = None
+
+    x = Conv2D(filters, kernel_size, padding=padding, strides=strides, activation='relu', name=conv_name)(x)
+    x = BatchNormalization(name=bn_name)(x)
+    return x
+
+
+# Define Residual Block for ResNet34(2 convolution layers)
+def Residual_Block(input_model, filters, kernel_size, strides=(1, 1), with_conv_shortcut=False):
+    x = Conv2d_BN(input_model, filters=filters/4, kernel_size=(1, 1), strides=strides, padding='same')
+    x = Conv2d_BN(x, filters=filters/4, kernel_size=kernel_size, padding='same')
+    x = Conv2d_BN(x, filters=filters, kernel_size=(1, 1), padding='same')
+
+    # need convolution on shortcut for add different channel
+    if with_conv_shortcut:
+        shortcut = Conv2d_BN(input_model, filters=filters, strides=strides, kernel_size=kernel_size)
+        x = Add()([x, shortcut])
+        return x
+    else:
+        x = Add()([x, input_model])
+        return x
+
+
 def train(batch_size=500, n=50, data=1):
     dataset = f"train/data0{data}_train"
     version = f"data0{data}_{n}"
@@ -109,28 +139,18 @@ def train(batch_size=500, n=50, data=1):
     main_input = Input(shape=input_shape)
     x = main_input
     x = Conv2D(filters=64, kernel_size=(3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(filters=64, kernel_size=(3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(filters=64, kernel_size=(3, 3), activation='relu')(x)
-    x = BatchNormalization()(x)
     x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
-    x = Conv2D(filters=128, kernel_size=(3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(filters=128, kernel_size=(3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(filters=128, kernel_size=(3, 3), activation='relu')(x)
-    x = BatchNormalization()(x)
-    x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
-    x = Conv2D(filters=256, kernel_size=(3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(filters=256, kernel_size=(3, 3), activation='relu', padding='same')(x)
-    x = Conv2D(filters=256, kernel_size=(3, 3), activation='relu')(x)
-    x = BatchNormalization()(x)
-    x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
+    x = Residual_Block(x, filters=64, kernel_size=(3, 3))
+    x = Residual_Block(x, filters=64, kernel_size=(3, 3))
+    # x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
+    x = Residual_Block(x, filters=128, kernel_size=(3, 3), with_conv_shortcut=True)
+    x = Residual_Block(x, filters=128, kernel_size=(3, 3))
+    # x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
+    x = Residual_Block(x, filters=256, kernel_size=(3, 3), with_conv_shortcut=True)
+    x = Residual_Block(x, filters=256, kernel_size=(3, 3))
+    # x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
     x = Conv2D(filters=512, kernel_size=(3, 3), activation='relu')(x)
     x = BatchNormalization()(x)
-    # x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
-    # x = Conv2D(filters=512, kernel_size=(3, 3), activation='relu', padding='same')(x)
-    # x = Conv2D(filters=512, kernel_size=(3, 3), activation='relu', padding='same')(x)
-    # x = Conv2D(filters=512, kernel_size=(3, 3), activation='relu', padding='same')(x)
-    # x = Conv2D(filters=512, kernel_size=(3, 3), activation='relu')(x)
-    # x = BatchNormalization()(x)
     x = Flatten()(x)
     x = Dropout(0.4)(x)
     out = [Dense(len(alphabet), name=f'digit{i + 1}', activation='softmax')(x) for i in range(6)]
@@ -140,7 +160,7 @@ def train(batch_size=500, n=50, data=1):
     checkpoint = ModelCheckpoint(checkpoint_path, monitor='val_loss', verbose=1, save_best_only=True,
                                  save_weights_only=False, mode='auto')
     if data == 1:
-        earlystop = MinimumEpochEarlyStopping(monitor='val_loss', patience=10, verbose=1, mode='auto', min_epoch=20)
+        earlystop = MinimumEpochEarlyStopping(monitor='val_loss', patience=10, verbose=1, mode='auto', min_epoch=15)
     else:
         earlystop = MinimumEpochEarlyStopping(monitor='val_loss', patience=10, verbose=1, mode='auto', min_epoch=30)
     tensorBoard = TensorBoard(log_dir=log_dir, histogram_freq=1)
@@ -148,7 +168,7 @@ def train(batch_size=500, n=50, data=1):
     # callbacks_list = [tensorBoard]
 
     model.summary()
-    train_history = model.fit_generator(
+    train_history = model.fit(
         train_generator,
         steps_per_epoch=train_generator.n // train_generator.batch_size,
         epochs=epochs,
