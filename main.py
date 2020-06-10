@@ -27,34 +27,11 @@ def main():
             except RuntimeError as e:
                 # Virtual devices must be set before GPUs have been initialized
                 print(e)
+        train(50, n=1, data=1)
         train(50, n=1, data=2)
     else:
-        # train(n=11, data=1)
-        # data 01
-        # train(n=11, data=1, conv_repeat=3)
-        # data01 40 data02 30
-        # more
-        # for i in range(33, 39):
-        #     train(n=i, data=2)
-        for i in range(46, 51):
-            train(n=i, data=1)
-        for i in range(39, 46):
-            train(n=i, data=2)
-        for i in range(51, 61):
-            train(n=i, data=1)
-        for i in range(46, 51):
-            train(n=i, data=2)
-        # for i in range(41, 61):
-        #     train(n=i, data=1, conv_repeat=3)
-        # for i in range(31, 51):
-        #     train(n=i, data=2, conv_repeat=3)
-        # for i in range(61, 81):
-        #     train(n=i, data=1, conv_repeat=3)
-        # for i in range(51, 71):
-        #     train(n=i, data=2, conv_repeat=3)
-        # train(n=1, data=2)
-        # for i in range(1, 11):
-        #     train(n=i, data=2)
+        train(n=1, data=1)
+        train(n=1, data=2)
 
 
 class CustomCallback(keras.callbacks.Callback):
@@ -125,12 +102,6 @@ def train(batch_size=500, n=50, data=1):
     x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
     x = Conv2D(filters=512, kernel_size=(3, 3), activation='relu')(x)
     x = BatchNormalization()(x)
-    # x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
-    # x = Conv2D(filters=512, kernel_size=(3, 3), activation='relu', padding='same')(x)
-    # x = Conv2D(filters=512, kernel_size=(3, 3), activation='relu', padding='same')(x)
-    # x = Conv2D(filters=512, kernel_size=(3, 3), activation='relu', padding='same')(x)
-    # x = Conv2D(filters=512, kernel_size=(3, 3), activation='relu')(x)
-    # x = BatchNormalization()(x)
     x = Flatten()(x)
     x = Dropout(0.4)(x)
     out = [Dense(len(alphabet), name=f'digit{i + 1}', activation='softmax')(x) for i in range(6)]
