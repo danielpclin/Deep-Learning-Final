@@ -8,9 +8,7 @@ from keras.utils import to_categorical
 from keras_preprocessing.image import ImageDataGenerator
 from tensorflow.keras import Input, Model
 from tensorflow.keras.callbacks import TensorBoard, EarlyStopping, ModelCheckpoint
-from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D, BatchNormalization, Add
-from tensorflow.keras.callbacks import ReduceLROnPlateau
-from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D, BatchNormalization, GRU, RepeatVector, Activation
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = str(-1)
 
@@ -29,35 +27,10 @@ def main():
             except RuntimeError as e:
                 # Virtual devices must be set before GPUs have been initialized
                 print(e)
-        # train(64, n=1001, data=1)
-        train(64, n=1004, data=1)
+        train(50, n=1, data=2)
     else:
-        # train(n=11, data=1)
-        # data 01
-        # train(n=11, data=1, conv_repeat=3)
-        # data01 40 data02 30
-        # more
-        # for i in range(33, 39):
-        #     train(n=i, data=2)
-        for i in range(46, 51):
-            train(n=i, data=1)
-        for i in range(39, 46):
+        for i in range(141, 161):
             train(n=i, data=2)
-        for i in range(51, 61):
-            train(n=i, data=1)
-        for i in range(46, 51):
-            train(n=i, data=2)
-        # for i in range(41, 61):
-        #     train(n=i, data=1, conv_repeat=3)
-        # for i in range(31, 51):
-        #     train(n=i, data=2, conv_repeat=3)
-        # for i in range(61, 81):
-        #     train(n=i, data=1, conv_repeat=3)
-        # for i in range(51, 71):
-        #     train(n=i, data=2, conv_repeat=3)
-        # train(n=1, data=2)
-        # for i in range(1, 11):
-        #     train(n=i, data=2)
 
 
 class CustomCallback(keras.callbacks.Callback):
@@ -81,35 +54,6 @@ class MinimumEpochEarlyStopping(EarlyStopping):
     def on_epoch_end(self, epoch, logs=None):
         if epoch > self.min_epoch:
             super().on_epoch_end(epoch, logs)
-
-
-def Conv2d_BN(x, filters, kernel_size, padding='same', strides=(1, 1), name=None):
-    if name is not None:
-        bn_name = name + '_bn'
-        conv_name = name + '_conv'
-    else:
-        bn_name = None
-        conv_name = None
-
-    x = Conv2D(filters, kernel_size, padding=padding, strides=strides, activation='relu', name=conv_name)(x)
-    x = BatchNormalization(name=bn_name)(x)
-    return x
-
-
-# Define Residual Block for ResNet34(2 convolution layers)
-def Residual_Block(input_model, filters, kernel_size, strides=(1, 1), with_conv_shortcut=False):
-    x = Conv2d_BN(input_model, filters=filters/4, kernel_size=(1, 1), strides=strides, padding='same')
-    x = Conv2d_BN(x, filters=filters/4, kernel_size=kernel_size, padding='same')
-    x = Conv2d_BN(x, filters=filters, kernel_size=(1, 1), padding='same')
-
-    # need convolution on shortcut for add different channel
-    if with_conv_shortcut:
-        shortcut = Conv2d_BN(input_model, filters=filters, strides=strides, kernel_size=kernel_size)
-        x = Add()([x, shortcut])
-        return x
-    else:
-        x = Add()([x, input_model])
-        return x
 
 
 def train(batch_size=500, n=50, data=1):
@@ -140,32 +84,51 @@ def train(batch_size=500, n=50, data=1):
     input_shape = (img_height, img_width, 3)
     main_input = Input(shape=input_shape)
     x = main_input
-    x = Conv2D(filters=64, kernel_size=(3, 3), activation='relu')(x)
+    x = Conv2D(filters=64, kernel_size=(3, 3), padding='same')(x)
+    x = BatchNormalization()(x)
+    x = Activation(activation='relu')(x)
+    x = Conv2D(filters=64, kernel_size=(3, 3), padding='same')(x)
+    x = BatchNormalization()(x)
+    x = Activation(activation='relu')(x)
+    x = Conv2D(filters=64, kernel_size=(3, 3))(x)
+    x = BatchNormalization()(x)
+    x = Activation(activation='relu')(x)
     x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
-    x = Residual_Block(x, filters=64, kernel_size=(3, 3))
-    x = Residual_Block(x, filters=64, kernel_size=(3, 3))
-    x = Residual_Block(x, filters=64, kernel_size=(3, 3))
+    x = Conv2D(filters=128, kernel_size=(3, 3), padding='same')(x)
+    x = BatchNormalization()(x)
+    x = Activation(activation='relu')(x)
+    x = Conv2D(filters=128, kernel_size=(3, 3), padding='same')(x)
+    x = BatchNormalization()(x)
+    x = Activation(activation='relu')(x)
+    x = Conv2D(filters=128, kernel_size=(3, 3))(x)
+    x = BatchNormalization()(x)
+    x = Activation(activation='relu')(x)
     x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
-    x = Residual_Block(x, filters=128, kernel_size=(3, 3), with_conv_shortcut=True)
-    x = Residual_Block(x, filters=128, kernel_size=(3, 3))
-    x = Residual_Block(x, filters=128, kernel_size=(3, 3))
+    x = Conv2D(filters=256, kernel_size=(3, 3), padding='same')(x)
+    x = BatchNormalization()(x)
+    x = Activation(activation='relu')(x)
+    x = Conv2D(filters=256, kernel_size=(3, 3), padding='same')(x)
+    x = BatchNormalization()(x)
+    x = Activation(activation='relu')(x)
+    x = Conv2D(filters=256, kernel_size=(3, 3))(x)
+    x = BatchNormalization()(x)
+    x = Activation(activation='relu')(x)
     x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
-    x = Residual_Block(x, filters=256, kernel_size=(3, 3), with_conv_shortcut=True)
-    x = Residual_Block(x, filters=256, kernel_size=(3, 3))
-    x = Residual_Block(x, filters=256, kernel_size=(3, 3))
+    x = Conv2D(filters=512, kernel_size=(3, 3))(x)
+    x = BatchNormalization()(x)
+    x = Activation(activation='relu')(x)
     x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
-    x = Residual_Block(x, filters=512, kernel_size=(3, 3), with_conv_shortcut=True)
-    x = Residual_Block(x, filters=512, kernel_size=(3, 3))
     x = Flatten()(x)
     x = Dropout(0.4)(x)
+    x = RepeatVector(6)(x)
+    x = GRU(128, return_sequences=True)(x)
     out = [Dense(len(alphabet), name=f'digit{i + 1}', activation='softmax')(x) for i in range(6)]
     model = Model(main_input, out)
-    model.compile(loss='categorical_crossentropy', optimizer=Adam(learning_rate=0.05), metrics=['accuracy'])
-
+    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
     checkpoint = ModelCheckpoint(checkpoint_path, monitor='val_loss', verbose=1, save_best_only=True,
                                  save_weights_only=False, mode='auto')
     if data == 1:
-        earlystop = MinimumEpochEarlyStopping(monitor='val_loss', patience=10, verbose=1, mode='auto', min_epoch=15)
+        earlystop = MinimumEpochEarlyStopping(monitor='val_loss', patience=10, verbose=1, mode='auto', min_epoch=20)
     else:
         earlystop = MinimumEpochEarlyStopping(monitor='val_loss', patience=10, verbose=1, mode='auto', min_epoch=30)
     tensorBoard = TensorBoard(log_dir=log_dir, histogram_freq=1)
