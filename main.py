@@ -8,7 +8,8 @@ from keras.utils import to_categorical
 from keras_preprocessing.image import ImageDataGenerator
 from tensorflow.keras import Input, Model
 from tensorflow.keras.callbacks import TensorBoard, EarlyStopping, ModelCheckpoint
-from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D, BatchNormalization, GRU, RepeatVector, Activation, Lambda
+from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D, BatchNormalization, GRU, Activation
+from tensorflow.keras.optimizers import Adam
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = str(-1)
 
@@ -27,9 +28,10 @@ def main():
             except RuntimeError as e:
                 # Virtual devices must be set before GPUs have been initialized
                 print(e)
-        train(50, n=1, data=2)
+        for i in range(1002, 1011):
+            train(50, n=1001, data=2)
     else:
-        for i in range(141, 161):
+        for i in range(142, 161):
             train(n=i, data=2)
 
 
@@ -120,17 +122,15 @@ def train(batch_size=500, n=50, data=1):
     x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
     x = Flatten()(x)
     x = Dropout(0.4)(x)
-    x = RepeatVector(6)(x)
-    x = GRU(128, return_sequences=True)(x)
-    out = [Dense(len(alphabet), name=f'digit{i + 1}', activation='softmax')(Lambda(lambda z: z[:, i, :], output_shape=(1, ) + input_shape[2:])(x)) for i in range(6)]
+    out = [Dense(len(alphabet), name=f'digit{i + 1}', activation='softmax')(GRU(128, return_sequences=True)(x)) for i in range(6)]
     model = Model(main_input, out)
-    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+    model.compile(loss='categorical_crossentropy', optimizer=Adam(0.0001), metrics=['accuracy'])
     checkpoint = ModelCheckpoint(checkpoint_path, monitor='val_loss', verbose=1, save_best_only=True,
                                  save_weights_only=False, mode='auto')
     if data == 1:
-        earlystop = MinimumEpochEarlyStopping(monitor='val_loss', patience=10, verbose=1, mode='auto', min_epoch=20)
+        earlystop = MinimumEpochEarlyStopping(monitor='val_loss', patience=10, verbose=1, mode='auto', min_epoch=5)
     else:
-        earlystop = MinimumEpochEarlyStopping(monitor='val_loss', patience=10, verbose=1, mode='auto', min_epoch=30)
+        earlystop = MinimumEpochEarlyStopping(monitor='val_loss', patience=10, verbose=1, mode='auto', min_epoch=10)
     tensorBoard = TensorBoard(log_dir=log_dir, histogram_freq=1)
     callbacks_list = [tensorBoard, earlystop, checkpoint]
     # callbacks_list = [tensorBoard]
