@@ -52,11 +52,11 @@ def Conv2d_BN(filters, kernel_size, padding='same', strides=(1, 1), name=None):
 # Define Residual Block for ResNet34(2 convolution layers)
 def Residual_Block(filters, kernel_size, strides=(1, 1), with_conv_shortcut=False):
     def block(input_x):
-        x = Conv2d_BN(filters=filters/4, kernel_size=(1, 1), strides=strides, padding='same')(input_x)
-        x = Conv2d_BN(filters=filters/4, kernel_size=kernel_size, padding='same')(x)
-        x = Conv2d_BN(filters=filters, kernel_size=(1, 1), padding='same')(x)
-        # x = Conv2d_BN(filters=filters, kernel_size=(3, 3), padding='same')(x)
-        # x = Conv2d_BN(filters=filters, kernel_size=(3, 3), padding='same')(x)
+        # x = Conv2d_BN(filters=filters/4, kernel_size=(1, 1), strides=strides, padding='same')(input_x)
+        # x = Conv2d_BN(filters=filters/4, kernel_size=kernel_size, padding='same')(x)
+        # x = Conv2d_BN(filters=filters, kernel_size=(1, 1), padding='same')(x)
+        x = Conv2d_BN(filters=filters, kernel_size=(3, 3), padding='same')(input_x)
+        x = Conv2d_BN(filters=filters, kernel_size=(3, 3), padding='same')(x)
         # need convolution on shortcut for add different channel
         if with_conv_shortcut:
             shortcut = Conv2d_BN(filters=filters, strides=strides, kernel_size=kernel_size)(input_x)
