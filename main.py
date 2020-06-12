@@ -31,8 +31,10 @@ def main():
         for i in range(1002, 1011):
             train(50, n=1001, data=2)
     else:
-        for i in range(150, 171):
+        for i in range(152, 156):
             train(n=i, data=2)
+        for i in range(156, 161):
+            train(n=i, data=2, drop=True)
 
 def Conv2d_BN(filters, kernel_size, padding='same', strides=(1, 1), name=None):
     def block(input_x):
@@ -90,7 +92,7 @@ class MinimumEpochEarlyStopping(EarlyStopping):
             super().on_epoch_end(epoch, logs)
 
 
-def train(batch_size=500, n=50, data=1):
+def train(batch_size=500, n=50, data=1, drop=False):
     dataset = f"train/data0{data}_train"
     version = f"data0{data}_{n}"
     checkpoint_path = f'checkpoint_{version}.hdf5'
@@ -126,17 +128,20 @@ def train(batch_size=500, n=50, data=1):
     x = Residual_Block(filters=64, kernel_size=(3, 3))(x)
     x = Residual_Block(filters=64, kernel_size=(3, 3))(x)
     x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
-    x = Dropout(0.4)(x)
+    if drop:
+        x = Dropout(0.4)(x)
     x = Residual_Block(filters=128, kernel_size=(3, 3), with_conv_shortcut=True)(x)
     x = Residual_Block(filters=128, kernel_size=(3, 3))(x)
     x = Residual_Block(filters=128, kernel_size=(3, 3))(x)
     x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
-    x = Dropout(0.4)(x)
+    if drop:
+        x = Dropout(0.4)(x)
     x = Residual_Block(filters=256, kernel_size=(3, 3), with_conv_shortcut=True)(x)
     x = Residual_Block(filters=256, kernel_size=(3, 3))(x)
     x = Residual_Block(filters=256, kernel_size=(3, 3))(x)
     x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
-    x = Dropout(0.4)(x)
+    if drop:
+        x = Dropout(0.4)(x)
     x = Conv2D(filters=512, kernel_size=(3, 3))(x)
     x = BatchNormalization()(x)
     x = Activation(activation='relu')(x)
