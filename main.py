@@ -7,7 +7,7 @@ from keras import backend as K
 from keras.utils import to_categorical
 from keras_preprocessing.image import ImageDataGenerator
 from tensorflow.keras import Input, Model
-from tensorflow.keras.callbacks import TensorBoard, EarlyStopping, ModelCheckpoint
+from tensorflow.keras.callbacks import TensorBoard, EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D, BatchNormalization, Activation, Add
 from tensorflow.keras.optimizers import Adam
 
@@ -31,7 +31,7 @@ def main():
         for i in range(1002, 1011):
             train(50, n=1001, data=2)
     else:
-        for i in range(142, 161):
+        for i in range(150, 171):
             train(n=i, data=2)
 
 def Conv2d_BN(filters, kernel_size, padding='same', strides=(1, 1), name=None):
@@ -146,8 +146,8 @@ def train(batch_size=500, n=50, data=1):
     else:
         earlystop = MinimumEpochEarlyStopping(monitor='val_loss', patience=10, verbose=1, mode='auto', min_epoch=10)
     tensorBoard = TensorBoard(log_dir=log_dir, histogram_freq=1)
-    callbacks_list = [tensorBoard, earlystop, checkpoint]
-    # callbacks_list = [tensorBoard]
+    reduceLR = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=10, mode='auto', min_lr=0.00001)
+    callbacks_list = [tensorBoard, earlystop, checkpoint, reduceLR]
 
     model.summary()
     train_history = model.fit(
