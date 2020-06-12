@@ -8,7 +8,7 @@ from keras.utils import to_categorical
 from keras_preprocessing.image import ImageDataGenerator
 from tensorflow.keras import Input, Model
 from tensorflow.keras.callbacks import TensorBoard, EarlyStopping, ModelCheckpoint
-from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D, BatchNormalization, GRU, Activation
+from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D, BatchNormalization, Activation, Add
 from tensorflow.keras.optimizers import Adam
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = str(-1)
@@ -62,7 +62,7 @@ def Residual_Block(filters, kernel_size, strides=(1, 1), with_conv_shortcut=Fals
             shortcut = Conv2d_BN(filters=filters, strides=strides, kernel_size=kernel_size)(input_x)
             x = Add()([x, shortcut])
         else:
-            x = Add()([x, input_model])
+            x = Add()([x, input_x])
         return x
     return block
 
@@ -118,6 +118,8 @@ def train(batch_size=500, n=50, data=1):
     input_shape = (img_height, img_width, 3)
     main_input = Input(shape=input_shape)
     x = main_input
+    x = Conv2D(filters=64, kernel_size=(3, 3))(x)
+    x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
     x = Residual_Block(filters=64, kernel_size=(3, 3))(x)
     x = Residual_Block(filters=64, kernel_size=(3, 3))(x)
     x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
@@ -132,7 +134,7 @@ def train(batch_size=500, n=50, data=1):
     x = Activation(activation='relu')(x)
     x = Flatten()(x)
     x = Dropout(0.4)(x)
-    out = [Dense(len(alphabet), name=f'digit{i + 1}', activation='softmax')(GRU(128, return_sequences=True)(x)) for i in range(6)]
+    out = [Dense(len(alphabet), name=f'digit{i + 1}', activation='softmax')(x) for i in range(6)]
     model = Model(main_input, out)
     model.compile(loss='categorical_crossentropy', optimizer=Adam(0.0001), metrics=['accuracy'])
     checkpoint = ModelCheckpoint(checkpoint_path, monitor='val_loss', verbose=1, save_best_only=True,
