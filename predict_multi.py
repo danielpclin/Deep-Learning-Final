@@ -39,7 +39,19 @@ def main():
         # predict(batch_size=50, n=(14, 21, 16, 30, 37, 45, 48, 50), data=2, method="max") # 94.06
 
     else:
-        pass
+        if True:
+            gpus = tf.config.experimental.list_physical_devices('GPU')
+            if gpus:
+                # Restrict TensorFlow to only allocate 2GB of memory on the first GPU
+                try:
+                    tf.config.experimental.set_virtual_device_configuration(
+                        gpus[0],
+                        [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=1536)])
+                    logical_gpus = tf.config.experimental.list_logical_devices('GPU')
+                    print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
+                except RuntimeError as e:
+                    # Virtual devices must be set before GPUs have been initialized
+                    print(e)
         # predict(n=(0, 22, 23), data=1)
         # predict(batch_size=500, n=(0, 22, 23, 30, 34, 40, 42, 49, 54, 55), data=1, method="occur_max") # 97.76
         # predict(batch_size=500, n=(14, 21, 16, 30, 40, 37, 45, 48, 49, 50), data=2, method="max") # 94.26
