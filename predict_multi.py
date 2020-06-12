@@ -116,9 +116,9 @@ def predict(batch_size=500, n=(0, 22, 23), data=1, dataset="dev", method="ocuur_
                     result[index] = result[index] + int_to_char[code % len(alphabet)]
     df['code'] = result
     if len(n) == 1:
-        df.to_csv(f'predict/data0{data}_{dataset}_{n[0]}.csv', index=False)
+        df.to_csv(f'predict/{dataset}/data0{data}_{dataset}_{n[0]}.csv', index=False)
     else:
-        df.to_csv(f'predict/data0{data}_{dataset}_{"_".join(map(str, n))}_{method}.csv', index=False)
+        df.to_csv(f'predict/{dataset}/data0{data}_{dataset}_{"_".join(map(str, n))}_{method}.csv', index=False)
     print(df)
 
 
