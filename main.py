@@ -8,7 +8,7 @@ from keras.utils import to_categorical
 from keras_preprocessing.image import ImageDataGenerator
 from tensorflow.keras import Input, Model
 from tensorflow.keras.callbacks import TensorBoard, EarlyStopping, ModelCheckpoint
-from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D, BatchNormalization, GRU, Activation, Lambda, RepeatVector
+from tensorflow.keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D, BatchNormalization, GRU, Activation, Lambda, RepeatVector, GlobalAveragePooling2D
 from tensorflow.keras.optimizers import Adam
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = str(-1)
@@ -28,7 +28,7 @@ def main():
             except RuntimeError as e:
                 # Virtual devices must be set before GPUs have been initialized
                 print(e)
-        for i in range(1002, 1011):
+        for i in range(1003, 1021):
             train(50, n=1001, data=2)
     else:
         for i in range(142, 161):
@@ -92,36 +92,28 @@ def train(batch_size=500, n=50, data=1):
     x = Conv2D(filters=64, kernel_size=(3, 3), padding='same')(x)
     x = BatchNormalization()(x)
     x = Activation(activation='relu')(x)
-    x = Conv2D(filters=64, kernel_size=(3, 3))(x)
-    x = BatchNormalization()(x)
-    x = Activation(activation='relu')(x)
     x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
+    x = Dropout(0.2)(x)
     x = Conv2D(filters=128, kernel_size=(3, 3), padding='same')(x)
     x = BatchNormalization()(x)
     x = Activation(activation='relu')(x)
     x = Conv2D(filters=128, kernel_size=(3, 3), padding='same')(x)
     x = BatchNormalization()(x)
     x = Activation(activation='relu')(x)
-    x = Conv2D(filters=128, kernel_size=(3, 3))(x)
-    x = BatchNormalization()(x)
-    x = Activation(activation='relu')(x)
     x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
+    x = Dropout(0.2)(x)
     x = Conv2D(filters=256, kernel_size=(3, 3), padding='same')(x)
     x = BatchNormalization()(x)
     x = Activation(activation='relu')(x)
     x = Conv2D(filters=256, kernel_size=(3, 3), padding='same')(x)
     x = BatchNormalization()(x)
     x = Activation(activation='relu')(x)
-    x = Conv2D(filters=256, kernel_size=(3, 3))(x)
+    x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
+    x = Conv2D(filters=512, kernel_size=(3, 3), padding='same')(x)
     x = BatchNormalization()(x)
     x = Activation(activation='relu')(x)
-    x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
-    x = Conv2D(filters=512, kernel_size=(3, 3))(x)
-    x = BatchNormalization()(x)
-    x = Activation(activation='relu')(x)
-    x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
-    x = Flatten()(x)
-    x = Dropout(0.4)(x)
+    x = GlobalAveragePooling2D()(x)
+    x = Dropout(0.2)(x)
     x = RepeatVector(6)(x)
     x = GRU(128, return_sequences=True)(x)
     out = [Dense(len(alphabet), name=f'digit{i + 1}', activation='softmax')(Lambda(lambda z: z[:, i, :], output_shape=(1,) + input_shape[2:])(x)) for i in range(6)]
