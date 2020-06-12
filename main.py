@@ -31,7 +31,7 @@ def main():
         for i in range(1002, 1011):
             train(50, n=1001, data=2)
     else:
-        for i in range(157, 161):
+        for i in range(159, 161):
             train(n=i, data=2, res=True)
         for i in range(161, 166):
             train(n=i, data=2, res=False)
@@ -154,12 +154,12 @@ def train(batch_size=500, n=1000, data=2, res=True, quad=False, drop=False, conv
         x = Residual_Block(filters=256, kernel_size=(3, 3))(x)
         x = Residual_Block(filters=256, kernel_size=(3, 3))(x)
         x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
-        x = Dropout(0.2)(x)
+        x = Dropout(0.3)(x)
         x = Conv2D(filters=512, kernel_size=(3, 3))(x)
         x = BatchNormalization()(x)
         x = Activation(activation='relu')(x)
         x = Flatten()(x)
-        x = Dropout(0.4)(x)
+        x = Dropout(0.3)(x)
     elif not convBLK:
         x = main_input
         x = Conv2D(filters=64, kernel_size=(3, 3), activation='relu', padding='same')(x)
@@ -228,7 +228,7 @@ def train(batch_size=500, n=1000, data=2, res=True, quad=False, drop=False, conv
     else:
         earlystop = MinimumEpochEarlyStopping(monitor='val_loss', patience=10, verbose=1, mode='auto', min_epoch=10)
     tensorBoard = TensorBoard(log_dir=log_dir, histogram_freq=1)
-    reduceLR = ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=10, mode='auto', min_lr=0.00005)
+    reduceLR = ReduceLROnPlateau(monitor='val_loss', factor=0.3, patience=6, mode='auto', min_lr=0.00005)
     callbacks_list = [tensorBoard, earlystop, checkpoint, reduceLR]
 
     model.summary()
