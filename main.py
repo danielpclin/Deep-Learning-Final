@@ -118,7 +118,7 @@ def train(batch_size=500, n=50, data=1):
     input_shape = (img_height, img_width, 3)
     main_input = Input(shape=input_shape)
     x = main_input
-    x = Conv2D(filters=64, kernel_size=(3, 3))(x)
+    x = Conv2D(filters=64, kernel_size=(3, 3), padding='same')(x)
     x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
     x = Residual_Block(filters=64, kernel_size=(3, 3))(x)
     x = Residual_Block(filters=64, kernel_size=(3, 3))(x)
