@@ -124,13 +124,19 @@ def train(batch_size=500, n=50, data=1):
     x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
     x = Residual_Block(filters=64, kernel_size=(3, 3))(x)
     x = Residual_Block(filters=64, kernel_size=(3, 3))(x)
+    x = Residual_Block(filters=64, kernel_size=(3, 3))(x)
     x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
+    # x = Dropout(0.4)(x)
     x = Residual_Block(filters=128, kernel_size=(3, 3), with_conv_shortcut=True)(x)
     x = Residual_Block(filters=128, kernel_size=(3, 3))(x)
+    x = Residual_Block(filters=128, kernel_size=(3, 3))(x)
     x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
+    # x = Dropout(0.4)(x)
     x = Residual_Block(filters=256, kernel_size=(3, 3), with_conv_shortcut=True)(x)
     x = Residual_Block(filters=256, kernel_size=(3, 3))(x)
+    x = Residual_Block(filters=256, kernel_size=(3, 3))(x)
     x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
+    # x = Dropout(0.4)(x)
     x = Conv2D(filters=512, kernel_size=(3, 3))(x)
     x = BatchNormalization()(x)
     x = Activation(activation='relu')(x)
@@ -146,7 +152,7 @@ def train(batch_size=500, n=50, data=1):
     else:
         earlystop = MinimumEpochEarlyStopping(monitor='val_loss', patience=10, verbose=1, mode='auto', min_epoch=10)
     tensorBoard = TensorBoard(log_dir=log_dir, histogram_freq=1)
-    reduceLR = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=10, mode='auto', min_lr=0.00001)
+    reduceLR = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, mode='auto', min_lr=0.00005)
     callbacks_list = [tensorBoard, earlystop, checkpoint, reduceLR]
 
     model.summary()
