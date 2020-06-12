@@ -34,6 +34,38 @@ def main():
         for i in range(142, 161):
             train(n=i, data=2)
 
+def Conv2d_BN(filters, kernel_size, padding='same', strides=(1, 1), name=None):
+    def block(input_x):
+        if name is not None:
+            bn_name = name + '_bn'
+            conv_name = name + '_conv'
+        else:
+            bn_name = None
+            conv_name = None
+        x = Conv2D(filters, kernel_size, padding=padding, strides=strides, name=conv_name)(input_x)
+        x = BatchNormalization(name=bn_name)(x)
+        x = Activation('relu')(x)
+        return x
+    return block
+
+
+# Define Residual Block for ResNet34(2 convolution layers)
+def Residual_Block(filters, kernel_size, strides=(1, 1), with_conv_shortcut=False):
+    def block(input_x):
+        x = Conv2d_BN(filters=filters/4, kernel_size=(1, 1), strides=strides, padding='same')(input_x)
+        x = Conv2d_BN(filters=filters/4, kernel_size=kernel_size, padding='same')(x)
+        x = Conv2d_BN(filters=filters, kernel_size=(1, 1), padding='same')(x)
+        # x = Conv2d_BN(filters=filters, kernel_size=(3, 3), padding='same')(x)
+        # x = Conv2d_BN(filters=filters, kernel_size=(3, 3), padding='same')(x)
+        # need convolution on shortcut for add different channel
+        if with_conv_shortcut:
+            shortcut = Conv2d_BN(filters=filters, strides=strides, kernel_size=kernel_size)(input_x)
+            x = Add()([x, shortcut])
+        else:
+            x = Add()([x, input_model])
+        return x
+    return block
+
 
 class CustomCallback(keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
@@ -86,40 +118,18 @@ def train(batch_size=500, n=50, data=1):
     input_shape = (img_height, img_width, 3)
     main_input = Input(shape=input_shape)
     x = main_input
-    x = Conv2D(filters=64, kernel_size=(3, 3), padding='same')(x)
-    x = BatchNormalization()(x)
-    x = Activation(activation='relu')(x)
-    x = Conv2D(filters=64, kernel_size=(3, 3), padding='same')(x)
-    x = BatchNormalization()(x)
-    x = Activation(activation='relu')(x)
-    x = Conv2D(filters=64, kernel_size=(3, 3))(x)
-    x = BatchNormalization()(x)
-    x = Activation(activation='relu')(x)
+    x = Residual_Block(filters=64, kernel_size=(3, 3))(x)
+    x = Residual_Block(filters=64, kernel_size=(3, 3))(x)
     x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
-    x = Conv2D(filters=128, kernel_size=(3, 3), padding='same')(x)
-    x = BatchNormalization()(x)
-    x = Activation(activation='relu')(x)
-    x = Conv2D(filters=128, kernel_size=(3, 3), padding='same')(x)
-    x = BatchNormalization()(x)
-    x = Activation(activation='relu')(x)
-    x = Conv2D(filters=128, kernel_size=(3, 3))(x)
-    x = BatchNormalization()(x)
-    x = Activation(activation='relu')(x)
+    x = Residual_Block(filters=128, kernel_size=(3, 3), with_conv_shortcut=True)(x)
+    x = Residual_Block(filters=128, kernel_size=(3, 3))(x)
     x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
-    x = Conv2D(filters=256, kernel_size=(3, 3), padding='same')(x)
-    x = BatchNormalization()(x)
-    x = Activation(activation='relu')(x)
-    x = Conv2D(filters=256, kernel_size=(3, 3), padding='same')(x)
-    x = BatchNormalization()(x)
-    x = Activation(activation='relu')(x)
-    x = Conv2D(filters=256, kernel_size=(3, 3))(x)
-    x = BatchNormalization()(x)
-    x = Activation(activation='relu')(x)
+    x = Residual_Block(filters=256, kernel_size=(3, 3), with_conv_shortcut=True)(x)
+    x = Residual_Block(filters=256, kernel_size=(3, 3))(x)
     x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
     x = Conv2D(filters=512, kernel_size=(3, 3))(x)
     x = BatchNormalization()(x)
     x = Activation(activation='relu')(x)
-    x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
     x = Flatten()(x)
     x = Dropout(0.4)(x)
     out = [Dense(len(alphabet), name=f'digit{i + 1}', activation='softmax')(GRU(128, return_sequences=True)(x)) for i in range(6)]
