@@ -157,7 +157,7 @@ def train(batch_size=500, n=50, data=1, drop=False):
     else:
         earlystop = MinimumEpochEarlyStopping(monitor='val_loss', patience=10, verbose=1, mode='auto', min_epoch=10)
     tensorBoard = TensorBoard(log_dir=log_dir, histogram_freq=1)
-    reduceLR = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, mode='auto', min_lr=0.00005)
+    reduceLR = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=10, mode='auto', min_lr=0.00005)
     callbacks_list = [tensorBoard, earlystop, checkpoint, reduceLR]
 
     model.summary()
