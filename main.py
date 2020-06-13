@@ -31,26 +31,29 @@ def main():
         for i in range(1002, 1011):
             train(50, n=1001, data=2)
     else:
-        # for i in range(159, 161): # stable and performant (2/2)
+        # for i in range(159, 161):  # stable and performant (2/2)
         #     train(n=i, data=2, res=True)
-        # for i in range(161, 166): # unstable and performant < res (lr may need to decrease) (3/5)
+        # for i in range(161, 166):  # unstable and performant < res (lr may need to decrease) (3/5)
         #     train(n=i, data=2, res=False)
-        # for i in range(166, 171): # unstable and performant <= res (lr may need to decrease) (2.5/5)
+        # for i in range(166, 171):  # unstable and performant <= res (lr may need to decrease) (2.5/5)
         #     train(n=i, data=2, res=False, quad=True)
-        # for i in range(171, 176): # unstable super performant (3/5)
+        # for i in range(171, 176):  # unstable super performant (3/5)
         #     train(n=i, data=2, res=False, quad=False, drop=True)
-        # for i in range(176, 181): # ?
-        #     train(n=i, data=2, res=False, quad=False, drop=True, convBLK=True)
-        for i in range(181, 186): #
+        # for i in range(176, 181):  # ?
+        #     train(n=i, data=2, res=False, quad=False, drop=True, convBLK=2)
+        for i in range(181, 186):  #
             train(n=i, data=2, res=True)
-        for i in range(186, 191): #
+        for i in range(186, 191):  #
             train(n=i, data=2, res=True, quad=True)
-        for i in range(191, 196): #
+        for i in range(191, 196):  #
             train(n=i, data=2, res=False, quad=True, drop=True)
-        for i in range(196, 201): #
+        for i in range(196, 201):  #
             train(n=i, data=2, res=False, quad=True, drop=True, convBLK=1)
-        for i in range(201, 206): #
+        for i in range(201, 206):  #
+            train(n=i, data=2, res=False, quad=False, drop=True, convBLK=2)
+        for i in range(206, 211):  #
             train(n=i, data=2, res=False, quad=True, drop=True, convBLK=2)
+
 
 def Conv2d_BN(filters, kernel_size, padding='same', strides=(1, 1), name=None):
     def block(input_x):
