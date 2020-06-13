@@ -31,13 +31,13 @@ def main():
         for i in range(1002, 1011):
             train(50, n=1001, data=2)
     else:
-        for i in range(159, 161):
+        for i in range(159, 161): # stable and performant
             train(n=i, data=2, res=True)
-        for i in range(161, 166):
+        for i in range(161, 166): # unstable and semi performant (lr may need to decrease)
             train(n=i, data=2, res=False)
-        for i in range(166, 171):
+        for i in range(166, 171): # unstable and performant ~ res (lr may need to decrease)
             train(n=i, data=2, res=False, quad=True)
-        for i in range(171, 176):
+        for i in range(171, 176): # unstable super performant
             train(n=i, data=2, res=False, quad=False, drop=True)
         for i in range(176, 181):
             train(n=i, data=2, res=False, quad=False, drop=True, convBLK=True)
@@ -228,7 +228,7 @@ def train(batch_size=500, n=1000, data=2, res=True, quad=False, drop=False, conv
     else:
         earlystop = MinimumEpochEarlyStopping(monitor='val_loss', patience=10, verbose=1, mode='auto', min_epoch=10)
     tensorBoard = TensorBoard(log_dir=log_dir, histogram_freq=1)
-    reduceLR = ReduceLROnPlateau(monitor='val_loss', factor=0.3, patience=4, mode='auto', min_lr=0.00001)
+    reduceLR = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=3, mode='auto', min_lr=0.000001)
     callbacks_list = [tensorBoard, earlystop, checkpoint, reduceLR]
 
     model.summary()
