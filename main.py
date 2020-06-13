@@ -39,7 +39,7 @@ def main():
         #     train(n=i, data=2, res=False, quad=True)
         # for i in range(171, 176):  # unstable super performant (3/5)
         #     train(n=i, data=2, res=False, quad=False, drop=True)
-        # for i in range(176, 181):  # ?
+        # for i in range(176, 181):  # stable? performant < res (lr may need to decrease) (3/3)
         #     train(n=i, data=2, res=False, quad=False, drop=True, convBLK=2)
         for i in range(181, 186):  #
             train(n=i, data=2, res=True)
