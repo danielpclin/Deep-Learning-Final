@@ -46,8 +46,10 @@ def main():
         for i in range(186, 191): #
             train(n=i, data=2, res=True, quad=True)
         for i in range(191, 196): #
-            train(n=i, data=2, res=False, quad=True, drop=True, convBLK=1)
+            train(n=i, data=2, res=False, quad=True, drop=True)
         for i in range(196, 201): #
+            train(n=i, data=2, res=False, quad=True, drop=True, convBLK=1)
+        for i in range(201, 206): #
             train(n=i, data=2, res=False, quad=True, drop=True, convBLK=2)
 
 def Conv2d_BN(filters, kernel_size, padding='same', strides=(1, 1), name=None):
