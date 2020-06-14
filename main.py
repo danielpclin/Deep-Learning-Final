@@ -57,13 +57,12 @@ def main():
         #     train(n=i, data=2, res=False, quad=True, drop=True, convBLK=1)
         for i in range(217, 219):  #
             train(batch_size=500, n=i, data=2, res=False, quad=True, drop=True)
-        for i in range(179, 221):  #
+        for i in range(219, 221):  #
             train(batch_size=500, n=i, data=2, res=False, quad=False, drop=True)
         for i in range(221, 231):  #
             train(batch_size=500, n=i, data=2, res=True)
         for i in range(231, 241):  #
             train(batch_size=500, n=i, data=2, res=True, quad=True)
-        for i in range(241, 246):  #
 
 def Conv2d_BN(filters, kernel_size, padding='same', strides=(1, 1), name=None):
     def block(input_x):
