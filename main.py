@@ -41,11 +41,11 @@ def main():
         #     train(n=i, data=2, res=False, quad=False, drop=True)
         # for i in range(176, 181):  # stable? performant < res (lr may need to decrease) (3/3)
         #     train(n=i, data=2, res=False, quad=False, drop=True, convBLK=2)
-        for i in range(181, 186):  #
+        for i in range(181, 186):  # stable 3/5 performant
             train(n=i, data=2, res=True)
-        for i in range(186, 191):  #
+        for i in range(186, 191):  # stable 5/5 performant
             train(n=i, data=2, res=True, quad=True)
-        for i in range(191, 196):  #
+        for i in range(191, 196):  # unstable 0/1 not performant
             train(n=i, data=2, res=False, quad=True, drop=True)
         for i in range(196, 201):  #
             train(n=i, data=2, res=False, quad=True, drop=True, convBLK=1)
@@ -97,12 +97,6 @@ def Conv2D_Block(filters, kernel_size, strides=(1, 1), padding='same'):
     return block
 
 
-class CustomCallback(keras.callbacks.Callback):
-    def on_epoch_end(self, epoch, logs=None):
-        keys = list(logs.keys())
-        print("End epoch {} of training; got log keys: {}".format(epoch, keys))
-
-
 class MinimumEpochEarlyStopping(EarlyStopping):
     def __init__(self, monitor='val_loss', min_delta=0, patience=0, verbose=0, mode='auto', baseline=None, restore_best_weights=False, min_epoch=30):
         super(MinimumEpochEarlyStopping, self).__init__(
@@ -113,6 +107,24 @@ class MinimumEpochEarlyStopping(EarlyStopping):
             mode=mode,
             baseline=baseline,
             restore_best_weights=restore_best_weights)
+        self.min_epoch = min_epoch
+
+    def on_epoch_end(self, epoch, logs=None):
+        if epoch > self.min_epoch:
+            super().on_epoch_end(epoch, logs)
+
+
+class MinimumEpochReduceLROnPlateau(ReduceLROnPlateau):
+    def __init__(self, monitor='val_loss', min_delta=0., patience=0, verbose=0, mode='auto', factor=0.1, cooldown=0, min_lr=0., min_epoch=30):
+        super(MinimumEpochReduceLROnPlateau, self).__init__(
+            monitor=monitor,
+            factor=factor,
+            patience=patience,
+            verbose=verbose,
+            mode=mode,
+            min_delta=min_delta,
+            cooldown=cooldown,
+            min_lr=min_lr,)
         self.min_epoch = min_epoch
 
     def on_epoch_end(self, epoch, logs=None):
@@ -274,7 +286,7 @@ def train(batch_size=500, n=1000, data=2, res=True, quad=False, drop=False, conv
     else:
         earlystop = MinimumEpochEarlyStopping(monitor='val_loss', patience=10, verbose=1, mode='auto', min_epoch=10)
     tensorBoard = TensorBoard(log_dir=log_dir, histogram_freq=1)
-    reduceLR = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=3, mode='auto', min_lr=0.000001)
+    reduceLR = MinimumEpochReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=2, mode='auto', min_lr=0.000001, min_epoch=5)
     callbacks_list = [tensorBoard, earlystop, checkpoint, reduceLR]
 
     model.summary()
