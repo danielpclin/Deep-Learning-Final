@@ -41,18 +41,26 @@ def main():
         #     train(n=i, data=2, res=False, quad=False, drop=True)
         # for i in range(176, 181):  # stable? performant < res (lr may need to decrease) (3/3)
         #     train(n=i, data=2, res=False, quad=False, drop=True, convBLK=2)
-        for i in range(181, 186):  # stable 3/5 performant
-            train(n=i, data=2, res=True)
-        for i in range(186, 191):  # stable 5/5 performant
-            train(n=i, data=2, res=True, quad=True)
-        for i in range(191, 196):  # unstable 0/1 not performant
-            train(n=i, data=2, res=False, quad=True, drop=True)
-        for i in range(196, 201):  #
+        # for i in range(181, 186):  # stable 3/5 performant
+        #     train(n=i, data=2, res=True)
+        # for i in range(186, 191):  # stable 5/5 performant
+        #     train(n=i, data=2, res=True, quad=True)
+        # for i in range(191, 196):  # unstable 0/1 not performant
+        #     train(n=i, data=2, res=False, quad=True, drop=True)
+        # for i in range(196, 201):  #
+        #     train(n=i, data=2, res=False, quad=True, drop=True, convBLK=1)
+        # for i in range(201, 206):  #
+        #     train(n=i, data=2, res=False, quad=False, drop=True, convBLK=2)
+        # for i in range(206, 211):  #
+        #     train(n=i, data=2, res=False, quad=True, drop=True, convBLK=2)
+        for i in range(211, 216):  #
             train(n=i, data=2, res=False, quad=True, drop=True, convBLK=1)
-        for i in range(201, 206):  #
-            train(n=i, data=2, res=False, quad=False, drop=True, convBLK=2)
-        for i in range(206, 211):  #
+        for i in range(216, 221):  #
             train(n=i, data=2, res=False, quad=True, drop=True, convBLK=2)
+        for i in range(221, 231):  #
+            train(n=i, data=2, res=True)
+        for i in range(231, 241):  #
+            train(n=i, data=2, res=True, quad=True)
 
 
 def Conv2d_BN(filters, kernel_size, padding='same', strides=(1, 1), name=None):
@@ -284,7 +292,7 @@ def train(batch_size=500, n=1000, data=2, res=True, quad=False, drop=False, conv
     if data == 1:
         earlystop = MinimumEpochEarlyStopping(monitor='val_loss', patience=10, verbose=1, mode='auto', min_epoch=5)
     else:
-        earlystop = MinimumEpochEarlyStopping(monitor='val_loss', patience=10, verbose=1, mode='auto', min_epoch=10)
+        earlystop = MinimumEpochEarlyStopping(monitor='val_loss', patience=10, verbose=1, mode='auto', min_epoch=20)
     tensorBoard = TensorBoard(log_dir=log_dir, histogram_freq=1)
     if res:
         reduceLR = MinimumEpochReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=3, mode='auto', min_lr=0.00001, min_epoch=15)
