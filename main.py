@@ -53,15 +53,18 @@ def main():
         #     train(n=i, data=2, res=False, quad=False, drop=True, convBLK=2)
         # for i in range(206, 211):  #
         #     train(n=i, data=2, res=False, quad=True, drop=True, convBLK=2)
-        for i in range(211, 216):  #
-            train(n=i, data=2, res=False, quad=True, drop=True, convBLK=1)
-        for i in range(216, 221):  #
-            train(n=i, data=2, res=False, quad=True, drop=True, convBLK=2)
+        # for i in range(211, 216):  #
+        #     train(n=i, data=2, res=False, quad=True, drop=True, convBLK=1)
+        for i in range(217, 219):  #
+            train(batch_size=500, n=i, data=2, res=False, quad=True, drop=True, convBLK=2)
+        for i in range(179, 221):  #
+            train(batch_size=500, n=i, data=2, res=False, quad=False, drop=True)
         for i in range(221, 231):  #
-            train(n=i, data=2, res=True)
+            train(batch_size=500, n=i, data=2, res=True)
         for i in range(231, 241):  #
-            train(n=i, data=2, res=True, quad=True)
-
+            train(batch_size=500, n=i, data=2, res=True, quad=True)
+        for i in range(241, 246):  #
+            train(batch_size=500, n=i, data=2, res=False, quad=True, drop=True)
 
 def Conv2d_BN(filters, kernel_size, padding='same', strides=(1, 1), name=None):
     def block(input_x):
