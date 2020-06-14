@@ -286,7 +286,10 @@ def train(batch_size=500, n=1000, data=2, res=True, quad=False, drop=False, conv
         x = Dropout(0.4)(x)
     out = [Dense(len(alphabet), name=f'digit{i + 1}', activation='softmax')(x) for i in range(6)]
     model = Model(main_input, out)
-    model.compile(loss='categorical_crossentropy', optimizer=Adam(0.001), metrics=['accuracy'])
+    if res:
+        model.compile(loss='categorical_crossentropy', optimizer=Adam(0.001), metrics=['accuracy'])
+    else:
+        model.compile(loss='categorical_crossentropy', optimizer=Adam(0.005), metrics=['accuracy'])
     checkpoint = ModelCheckpoint(checkpoint_path, monitor='val_loss', verbose=1, save_best_only=True,
                                  save_weights_only=False, mode='auto')
     if data == 1:
@@ -295,9 +298,9 @@ def train(batch_size=500, n=1000, data=2, res=True, quad=False, drop=False, conv
         earlystop = MinimumEpochEarlyStopping(monitor='val_loss', patience=10, verbose=1, mode='auto', min_epoch=20)
     tensorBoard = TensorBoard(log_dir=log_dir, histogram_freq=1)
     if res:
-        reduceLR = MinimumEpochReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=3, mode='auto', min_lr=0.00001, min_epoch=15)
+        reduceLR = MinimumEpochReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=3, cooldown=1, mode='auto', min_lr=0.00001, min_epoch=15)
     else:
-        reduceLR = MinimumEpochReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=3, mode='auto', min_lr=0.00001, min_epoch=20)
+        reduceLR = MinimumEpochReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=3, cooldown=1, mode='auto', min_lr=0.00001, min_epoch=20)
     callbacks_list = [tensorBoard, earlystop, checkpoint, reduceLR]
 
     model.summary()
