@@ -70,10 +70,10 @@ def main():
         #     train(batch_size=500, n=i, data=2, res=False, conv="front")
         # for i in range(237, 241):  #
         #     train(batch_size=500, n=i, data=2, res=True, quad=True)
-        # for i in range(241, 242):
-        #     train(batch_size=500, n=i, data=2, res=True, quad=False)
-        # for i in range(246, 266):
-        #     train(batch_size=500, n=i, data=2, res=True, quad=True)
+        for i in range(241, 242):
+            train(batch_size=500, n=i, data=2, res=True, quad=False)
+        for i in range(246, 266):
+            train(batch_size=500, n=i, data=2, res=True, quad=True)
         for i in range(266, 276):
             train(batch_size=500, n=i, data=2, res=False)
 
@@ -239,10 +239,7 @@ def train(batch_size=500, n=1000, data=2, res=True, quad=True, conv="front"):
         x = Dropout(0.4)(x)
     out = [Dense(len(alphabet), name=f'digit{i + 1}', activation='softmax')(x) for i in range(6)]
     model = Model(main_input, out)
-    if res:
-        model.compile(loss='categorical_crossentropy', optimizer=Adam(0.001), metrics=['accuracy'])
-    else:
-        model.compile(loss='categorical_crossentropy', optimizer=Adam(0.005), metrics=['accuracy'])
+    model.compile(loss='categorical_crossentropy', optimizer=Adam(0.001), metrics=['accuracy'])
     checkpoint = ModelCheckpoint(checkpoint_path, monitor='val_loss', verbose=1, save_best_only=True,
                                  save_weights_only=False, mode='auto')
     if data == 1:
