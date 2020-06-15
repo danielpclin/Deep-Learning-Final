@@ -28,8 +28,9 @@ def main():
             except RuntimeError as e:
                 # Virtual devices must be set before GPUs have been initialized
                 print(e)
-        for i in range(1002, 1011):
-            train(50, n=1001, data=2)
+        # for i in range(1005, 1011):
+        #     train(50, n=i, data=2, res=True)
+        train(50, n=1005, data=2, res=False, conv="front")
     else:
         # for i in range(159, 161):  # stable and performant (2/2)
         #     train(n=i, data=2, res=True)
@@ -55,14 +56,18 @@ def main():
         #     train(n=i, data=2, res=False, quad=True, drop=True, convBLK=2)
         # for i in range(211, 216):  #
         #     train(n=i, data=2, res=False, quad=True, drop=True, convBLK=1)
-        for i in range(217, 219):  #
-            train(batch_size=500, n=i, data=2, res=False, quad=True, drop=True)
-        for i in range(219, 221):  #
-            train(batch_size=500, n=i, data=2, res=False, quad=False, drop=True)
-        for i in range(221, 231):  #
-            train(batch_size=500, n=i, data=2, res=True)
-        for i in range(231, 241):  #
-            train(batch_size=500, n=i, data=2, res=True, quad=True)
+        # for i in range(217, 219):  #
+        #     train(batch_size=500, n=i, data=2, res=False, quad=True, drop=True)
+        # for i in range(219, 221):  #
+        #     train(batch_size=500, n=i, data=2, res=False, quad=False, drop=True)
+        # for i in range(221, 231):  #
+        #     train(batch_size=500, n=i, data=2, res=True)
+        # for i in range(231, 241):  #
+        #     train(batch_size=500, n=i, data=2, res=True, quad=True)
+        for i in range(241, 243):
+            train(batch_size=500, n=i, data=2, res=False, conv="back")
+        for i in range(241, 243):
+            train(batch_size=500, n=i, data=2, res=False, conv="back")
 
 def Conv2d_BN(filters, kernel_size, padding='same', strides=(1, 1), name=None):
     def block(input_x):
@@ -141,7 +146,7 @@ class MinimumEpochReduceLROnPlateau(ReduceLROnPlateau):
             super().on_epoch_end(epoch, logs)
 
 
-def train(batch_size=500, n=1000, data=2, res=True, quad=False, drop=False, convBLK=0):
+def train(batch_size=500, n=1000, data=2, res=True, quad=True, conv="front"):
     dataset = f"train/data0{data}_train"
     version = f"data0{data}_{n}"
     checkpoint_path = f'checkpoint_{version}.hdf5'
@@ -173,7 +178,6 @@ def train(batch_size=500, n=1000, data=2, res=True, quad=False, drop=False, conv
         x = Conv2D(filters=64, kernel_size=(3, 3), padding='same')(x)
         x = BatchNormalization()(x)
         x = Activation('relu')(x)
-        x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
         x = Residual_Block(filters=64, kernel_size=(3, 3))(x)
         x = Residual_Block(filters=64, kernel_size=(3, 3))(x)
         x = Residual_Block(filters=64, kernel_size=(3, 3))(x)
@@ -200,7 +204,38 @@ def train(batch_size=500, n=1000, data=2, res=True, quad=False, drop=False, conv
         x = Activation(activation='relu')(x)
         x = Flatten()(x)
         x = Dropout(0.3)(x)
-    elif convBLK == 0:
+    elif conv == "front":
+        x = main_input
+        x = Conv2D(filters=64, kernel_size=(3, 3), padding='same')(x)
+        x = BatchNormalization()(x)
+        x = Activation('relu')(x)
+        x = Residual_Block(filters=64, kernel_size=(3, 3))(x)
+        x = Residual_Block(filters=64, kernel_size=(3, 3))(x)
+        x = Residual_Block(filters=64, kernel_size=(3, 3))(x)
+        if quad:
+            x = Residual_Block(filters=64, kernel_size=(3, 3))(x)
+        x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
+        x = Dropout(0.2)(x)
+        x = Residual_Block(filters=128, kernel_size=(3, 3), with_conv_shortcut=True)(x)
+        x = Residual_Block(filters=128, kernel_size=(3, 3))(x)
+        x = Residual_Block(filters=128, kernel_size=(3, 3))(x)
+        if quad:
+            x = Residual_Block(filters=128, kernel_size=(3, 3))(x)
+        x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
+        x = Dropout(0.2)(x)
+        x = Conv2D(filters=256, kernel_size=(3, 3), activation='relu', padding='same')(x)
+        x = Conv2D(filters=256, kernel_size=(3, 3), activation='relu', padding='same')(x)
+        x = Conv2D(filters=256, kernel_size=(3, 3), activation='relu', padding='same')(x)
+        if quad:
+            x = Conv2D(filters=256, kernel_size=(3, 3), activation='relu', padding='same')(x)
+        x = BatchNormalization()(x)
+        x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
+        x = Dropout(0.2)(x)
+        x = Conv2D(filters=512, kernel_size=(3, 3), activation='relu')(x)
+        x = BatchNormalization()(x)
+        x = Flatten()(x)
+        x = Dropout(0.4)(x)
+    else:
         x = main_input
         x = Conv2D(filters=64, kernel_size=(3, 3), activation='relu', padding='same')(x)
         x = Conv2D(filters=64, kernel_size=(3, 3), activation='relu', padding='same')(x)
@@ -209,8 +244,7 @@ def train(batch_size=500, n=1000, data=2, res=True, quad=False, drop=False, conv
             x = Conv2D(filters=64, kernel_size=(3, 3), activation='relu', padding='same')(x)
         x = BatchNormalization()(x)
         x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
-        if drop:
-            x = Dropout(0.2)(x)
+        x = Dropout(0.2)(x)
         x = Conv2D(filters=128, kernel_size=(3, 3), activation='relu', padding='same')(x)
         x = Conv2D(filters=128, kernel_size=(3, 3), activation='relu', padding='same')(x)
         x = Conv2D(filters=128, kernel_size=(3, 3), activation='relu', padding='same')(x)
@@ -218,71 +252,16 @@ def train(batch_size=500, n=1000, data=2, res=True, quad=False, drop=False, conv
             x = Conv2D(filters=128, kernel_size=(3, 3), activation='relu', padding='same')(x)
         x = BatchNormalization()(x)
         x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
-        if drop:
-            x = Dropout(0.2)(x)
-        x = Conv2D(filters=256, kernel_size=(3, 3), activation='relu', padding='same')(x)
-        x = Conv2D(filters=256, kernel_size=(3, 3), activation='relu', padding='same')(x)
-        x = Conv2D(filters=256, kernel_size=(3, 3), activation='relu', padding='same')(x)
+        x = Dropout(0.2)(x)
+        x = Residual_Block(filters=256, kernel_size=(3, 3), with_conv_shortcut=True)(x)
+        x = Residual_Block(filters=256, kernel_size=(3, 3))(x)
+        x = Residual_Block(filters=256, kernel_size=(3, 3))(x)
         if quad:
-            x = Conv2D(filters=256, kernel_size=(3, 3), activation='relu', padding='same')(x)
-        x = BatchNormalization()(x)
+            x = Residual_Block(filters=256, kernel_size=(3, 3))(x)
         x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
+        x = Dropout(0.2)(x)
         x = Conv2D(filters=512, kernel_size=(3, 3), activation='relu')(x)
         x = BatchNormalization()(x)
-        x = Flatten()(x)
-        x = Dropout(0.4)(x)
-    elif convBLK == 1:
-        x = main_input
-        x = Conv2D(filters=64, kernel_size=(3, 3), activation='relu', padding='same')(x)
-        x = Conv2D(filters=64, kernel_size=(3, 3), activation='relu', padding='same')(x)
-        x = Conv2D(filters=64, kernel_size=(3, 3), activation='relu', padding='same')(x)
-        if quad:
-            x = Conv2D_Block(filters=64, kernel_size=(3, 3), padding='same')(x)
-        x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
-        if drop:
-            x = Dropout(0.2)(x)
-        x = Conv2D(filters=128, kernel_size=(3, 3), activation='relu', padding='same')(x)
-        x = Conv2D(filters=128, kernel_size=(3, 3), activation='relu', padding='same')(x)
-        x = Conv2D(filters=128, kernel_size=(3, 3), activation='relu', padding='same')(x)
-        if quad:
-            x = Conv2D_Block(filters=128, kernel_size=(3, 3), padding='same')(x)
-        x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
-        if drop:
-            x = Dropout(0.2)(x)
-        x = Conv2D(filters=256, kernel_size=(3, 3), activation='relu', padding='same')(x)
-        x = Conv2D(filters=256, kernel_size=(3, 3), activation='relu', padding='same')(x)
-        x = Conv2D(filters=256, kernel_size=(3, 3), activation='relu', padding='same')(x)
-        if quad:
-            x = Conv2D_Block(filters=256, kernel_size=(3, 3), padding='same')(x)
-        x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
-        x = Conv2D_Block(filters=512, kernel_size=(3, 3), padding='same')(x)
-        x = Flatten()(x)
-        x = Dropout(0.4)(x)
-    elif convBLK == 2:
-        x = main_input
-        x = Conv2D_Block(filters=64, kernel_size=(3, 3), padding='same')(x)
-        x = Conv2D_Block(filters=64, kernel_size=(3, 3), padding='same')(x)
-        x = Conv2D_Block(filters=64, kernel_size=(3, 3), padding='same')(x)
-        if quad:
-            x = Conv2D_Block(filters=64, kernel_size=(3, 3), padding='same')(x)
-        x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
-        if drop:
-            x = Dropout(0.2)(x)
-        x = Conv2D_Block(filters=128, kernel_size=(3, 3), padding='same')(x)
-        x = Conv2D_Block(filters=128, kernel_size=(3, 3), padding='same')(x)
-        x = Conv2D_Block(filters=128, kernel_size=(3, 3), padding='same')(x)
-        if quad:
-            x = Conv2D_Block(filters=128, kernel_size=(3, 3), padding='same')(x)
-        x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
-        if drop:
-            x = Dropout(0.2)(x)
-        x = Conv2D_Block(filters=256, kernel_size=(3, 3), padding='same')(x)
-        x = Conv2D_Block(filters=256, kernel_size=(3, 3), padding='same')(x)
-        x = Conv2D_Block(filters=256, kernel_size=(3, 3), padding='same')(x)
-        if quad:
-            x = Conv2D_Block(filters=256, kernel_size=(3, 3), padding='same')(x)
-        x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
-        x = Conv2D_Block(filters=512, kernel_size=(3, 3), padding='same')(x)
         x = Flatten()(x)
         x = Dropout(0.4)(x)
     out = [Dense(len(alphabet), name=f'digit{i + 1}', activation='softmax')(x) for i in range(6)]
