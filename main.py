@@ -67,7 +67,7 @@ def main():
         for i in range(237, 241):  #
             train(batch_size=500, n=i, data=2, res=True, quad=True)
         for i in range(241, 242):
-            train(batch_size=500, n=i, data=2, res=True, quad=True)
+            train(batch_size=500, n=i, data=2, res=True, quad=False)
         for i in range(242, 244):
             train(batch_size=500, n=i, data=2, res=False, conv="front")
         for i in range(244, 246):
