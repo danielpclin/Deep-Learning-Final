@@ -208,7 +208,7 @@ def train(batch_size=500, n=1000, data=2, res=True, quad=True, conv="front"):
         x = Conv2D(filters=512, kernel_size=(3, 3))(x)
         x = BatchNormalization()(x)
         x = Activation(activation='relu')(x)
-        # x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
+        x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
         x = Flatten()(x)
         x = Dropout(0.3)(x)
     elif conv == "front":
@@ -240,7 +240,7 @@ def train(batch_size=500, n=1000, data=2, res=True, quad=True, conv="front"):
         x = Dropout(0.2)(x)
         x = Conv2D(filters=512, kernel_size=(3, 3), activation='relu')(x)
         x = BatchNormalization()(x)
-        # x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
+        x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
         x = Flatten()(x)
         x = Dropout(0.4)(x)
     else:
@@ -270,7 +270,7 @@ def train(batch_size=500, n=1000, data=2, res=True, quad=True, conv="front"):
         x = Dropout(0.2)(x)
         x = Conv2D(filters=512, kernel_size=(3, 3), activation='relu')(x)
         x = BatchNormalization()(x)
-        # x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
+        x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
         x = Flatten()(x)
         x = Dropout(0.4)(x)
     out = [Dense(len(alphabet), name=f'digit{i + 1}', activation='softmax')(x) for i in range(6)]
