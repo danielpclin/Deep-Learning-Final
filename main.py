@@ -62,12 +62,18 @@ def main():
         #     train(batch_size=500, n=i, data=2, res=False, quad=False, drop=True)
         # for i in range(221, 231):  #
         #     train(batch_size=500, n=i, data=2, res=True)
-        # for i in range(231, 241):  #
+        # for i in range(231, 237):  # old
         #     train(batch_size=500, n=i, data=2, res=True, quad=True)
-        for i in range(241, 243):
+        for i in range(237, 241):  #
+            train(batch_size=500, n=i, data=2, res=True, quad=True)
+        for i in range(241, 242):
+            train(batch_size=500, n=i, data=2, res=True, quad=True)
+        for i in range(242, 244):
+            train(batch_size=500, n=i, data=2, res=False, conv="front")
+        for i in range(244, 246):
             train(batch_size=500, n=i, data=2, res=False, conv="back")
-        for i in range(241, 243):
-            train(batch_size=500, n=i, data=2, res=False, conv="back")
+        for i in range(246, 266):
+            train(batch_size=500, n=i, data=2, res=True, quad=True)
 
 def Conv2d_BN(filters, kernel_size, padding='same', strides=(1, 1), name=None):
     def block(input_x):
