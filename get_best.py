@@ -8,7 +8,7 @@ def find_best(dataset=1, start=1, end=10, nums=5):
     for i in range(start, end+1):
         try:
             with open(f"data0{dataset}_{i}.txt", "r") as file:
-                for _ in range(9):
+                for _ in range(1):
                     file.readline()
                 data.append(i)
                 acc = 1

@@ -70,11 +70,11 @@ def main():
         #     train(batch_size=500, n=i, data=2, res=False, conv="front")
         # for i in range(237, 241):  #
         #     train(batch_size=500, n=i, data=2, res=True, quad=True)
-        for i in range(241, 242):
-            train(batch_size=500, n=i, data=2, res=True, quad=False)
-        for i in range(246, 266):
+        # for i in range(241, 242):
+        #     train(batch_size=500, n=i, data=2, res=True, quad=False)
+        for i in range(246, 260):
             train(batch_size=500, n=i, data=2, res=True, quad=True)
-        for i in range(266, 276):
+        for i in range(261, 271):
             train(batch_size=500, n=i, data=2, res=False)
 
 def Conv2d_BN(filters, kernel_size, padding='same', strides=(1, 1), name=None):
