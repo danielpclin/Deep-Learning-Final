@@ -30,35 +30,34 @@ def main():
                     print(e)
         else:
             os.environ["CUDA_VISIBLE_DEVICES"] = str(CUDA)
-        # predict(batch_size=10, n=(54,), data=1) #
-        # predict(batch_size=50, n=(0, 22, 23), data=1) # 96.06
-        # predict(batch_size=50, n=(0, 22, 23, 30, 34, 40), data=1, method="occur_max") # 97.19
-        # predict(batch_size=50, n=(0, 22, 23, 30, 34, 40, 42, 49, 54, 55), data=1, method="max") # 97.57
-        # predict(batch_size=50, n=(0, 22, 23, 30, 34, 40, 42, 49, 54, 55), data=1, method="occur_max") # 97.76
-        # predict(batch_size=50, n=(14, 21, 16, 30), data=2, method="max") # 92.10
-        # predict(batch_size=50, n=(14, 21, 16, 30, 37, 45, 48, 50), data=2, method="max") # 94.06
+        predict(batch_size=500, n=(272, 268, 173, 249, 254, 171, 259, 253, 250, 257, 262, 247, 159, 252, 277, 229, 248, 235, 230, 167), data=2, dataset="train", method="occur_max")
+        predict(batch_size=500, n=(272, 268, 173, 249, 254, 171, 259, 253, 250, 257, 262, 247, 159, 252, 277, 229, 248, 235, 230, 167), data=2, dataset="train", method="occur_sum_max")
+        predict(batch_size=500, n=(272, 268, 173, 249, 254, 171, 259, 253, 250, 257, 262, 247, 159, 252, 277, 229, 248, 235, 230, 167), data=2, dataset="train", method="max")
+        predict(batch_size=500, n=(272, 268, 173, 249, 254), data=2, dataset="train", method="occur_max")
+        predict(batch_size=500, n=(272, 268, 173, 249, 254), data=2, dataset="train", method="occur_sum_max")
+        predict(batch_size=500, n=(272, 268, 173, 249, 254), data=2, dataset="train", method="max")
+        predict(batch_size=500, n=(272, 268, 173, 249, 254, 171, 259, 253, 250, 257, 262, 247, 159, 252, 277, 229, 248, 235, 230, 167), data=2, dataset="test", method="occur_max")
+        predict(batch_size=500, n=(272, 268, 173, 249, 254, 171, 259, 253, 250, 257, 262, 247, 159, 252, 277, 229, 248, 235, 230, 167), data=2, dataset="test", method="occur_sum_max")
+        predict(batch_size=500, n=(272, 268, 173, 249, 254, 171, 259, 253, 250, 257, 262, 247, 159, 252, 277, 229, 248, 235, 230, 167), data=2, dataset="test", method="max")
+        predict(batch_size=500, n=(272, 268, 173, 249, 254), data=2, dataset="test", method="occur_max")
+        predict(batch_size=500, n=(272, 268, 173, 249, 254), data=2, dataset="test", method="occur_sum_max")
+        predict(batch_size=500, n=(272, 268, 173, 249, 254), data=2, dataset="test", method="max")
 
     else:
-        if True:
-            gpus = tf.config.experimental.list_physical_devices('GPU')
-            if gpus:
-                # Restrict TensorFlow to only allocate 2GB of memory on the first GPU
-                try:
-                    tf.config.experimental.set_virtual_device_configuration(
-                        gpus[0],
-                        [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=1536)])
-                    logical_gpus = tf.config.experimental.list_logical_devices('GPU')
-                    print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
-                except RuntimeError as e:
-                    # Virtual devices must be set before GPUs have been initialized
-                    print(e)
-        # predict(n=(0, 22, 23), data=1)
-        # predict(batch_size=500, n=(0, 22, 23, 30, 34, 40, 42, 49, 54, 55), data=1, method="occur_max") # 97.76
-        # predict(batch_size=500, n=(14, 21, 16, 30, 40, 37, 45, 48, 49, 50), data=2, method="max") # 94.26
-        # predict(batch_size=500, n=(42, 55, 54, 49, 57, 60, 34, 47, 59, 40, 48), data=1, method="occur_max") # 97.90
-        # predict(batch_size=500, n=(45, 48, 37, 50, 30, 40, 49, 34, 42, 39, 44), data=2, method="max") # 94.30
-        # predict(batch_size=500, n=(45, 48, 37, 50, 30, 40, 49, 34, 42), data=2, method="max") # 94.13
-
+        # if True:
+        #     gpus = tf.config.experimental.list_physical_devices('GPU')
+        #     if gpus:
+        #         # Restrict TensorFlow to only allocate 2GB of memory on the first GPU
+        #         try:
+        #             tf.config.experimental.set_virtual_device_configuration(
+        #                 gpus[0],
+        #                 [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=1536)])
+        #             logical_gpus = tf.config.experimental.list_logical_devices('GPU')
+        #             print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
+        #         except RuntimeError as e:
+        #             # Virtual devices must be set before GPUs have been initialized
+        #             print(e)
+        predict(batch_size=500, n=(272, 268, 173, 249, 254, 171, 259, 253, 250, 257, 262, 247, 159, 252, 277, 229, 248, 235, 230, 167), data=2, dataset="test", method="max")
 
 
 def predict(batch_size=500, n=(0, 22, 23), data=1, dataset="dev", method="ocuur_sum_max"):
